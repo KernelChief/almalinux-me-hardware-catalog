@@ -18,10 +18,9 @@ jobs:
               id: extract
               run: |
                 # Use the Gitea environment file to safely grab the body
-                # This avoids any shell injection or 'command not found' errors
                 echo "Writing issue body to file..."
                 
-                # Create the file directly from the event path to avoid shell expansion
+                # Create the file directly from the event path
                 jq -r '.issue.body' "$GITHUB_EVENT_PATH" > raw_body.txt
                 
                 # Strip Windows line endings and extract the JSON object
