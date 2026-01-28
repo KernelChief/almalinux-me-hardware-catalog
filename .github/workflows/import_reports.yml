@@ -15,40 +15,40 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Extract and Validate JSON
-              id: extract
-              run: |
-                # 1. Grab the raw body
-                jq -r '.issue.body' "$GITHUB_EVENT_PATH" > raw_body.txt
-                
-                # 2. Clean the data: 
-                # - Strip Windows line endings (\r)
-                # - Remove Markdown code blocks (```json or ```)
-                # - Use sed to grab ONLY the first { to the last }
-                tr -d '\r' < raw_body.txt | \
-                sed 's/```json//g; s/```//g' | \
-                sed -n '/{/,/}/p' > temp_report.json
-                
-                # 3. DEBUG: Print what we found to the log so we can see it
-                echo "--- START OF EXTRACTED DATA ---"
-                cat temp_report.json
-                echo "--- END OF EXTRACTED DATA ---"
-                
-                # 4. Final Validation
-                if jq -e . temp_report.json >/dev/null 2>&1; then
-                  REPORT_ID=$(jq -r '.report_id' temp_report.json)
-                  if [ "$REPORT_ID" == "null" ] || [ -z "$REPORT_ID" ]; then 
-                    REPORT_ID="manual_$(date +%s)"
-                  fi
-                  mkdir -p data/reports
-                  cp temp_report.json "data/reports/${REPORT_ID}.json"
-                  echo "success=true" >> $GITHUB_OUTPUT
-                  echo "report_id=$REPORT_ID" >> $GITHUB_OUTPUT
-                  echo "✅ Successfully saved report: $REPORT_ID"
-                else
-                  echo "❌ Error: Content is still not valid JSON."
-                  echo "Check for 'smart quotes' or missing commas in your issue body."
-                  exit 1
-                fi
+        id: extract
+        run: |
+          # 1. Grab the raw body
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" > raw_body.txt
+          
+          # 2. Clean the data: 
+          # - Strip Windows line endings (\r)
+          # - Remove Markdown code blocks (```json or ```)
+          # - Use sed to grab ONLY the first { to the last }
+          tr -d '\r' < raw_body.txt | \
+          sed 's/```json//g; s/```//g' | \
+          sed -n '/{/,/}/p' > temp_report.json
+          
+          # 3. DEBUG: Print what we found to the log so we can see it
+          echo "--- START OF EXTRACTED DATA ---"
+          cat temp_report.json
+          echo "--- END OF EXTRACTED DATA ---"
+          
+          # 4. Final Validation
+          if jq -e . temp_report.json >/dev/null 2>&1; then
+            REPORT_ID=$(jq -r '.report_id' temp_report.json)
+            if [ "$REPORT_ID" == "null" ] || [ -z "$REPORT_ID" ]; then 
+              REPORT_ID="manual_$(date +%s)"
+            fi
+            mkdir -p data/reports
+            cp temp_report.json "data/reports/${REPORT_ID}.json"
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "report_id=$REPORT_ID" >> $GITHUB_OUTPUT
+            echo "✅ Successfully saved report: $REPORT_ID"
+          else
+            echo "❌ Error: Content is still not valid JSON."
+            echo "Check for 'smart quotes' or missing commas in your issue body."
+            exit 1
+          fi
 
       - name: Rebuild DATABASE.md Table
         if: steps.extract.outputs.success == 'true'
