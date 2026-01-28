@@ -1,1 +1,0 @@
-# almalinux-m-e-hardware-catalog

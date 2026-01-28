@@ -1,0 +1,104 @@
+name: Auto-import and Build Database
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  process_report:
+    if: contains(github.event.issue.labels.*.name, 'hardware-report')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract and Validate JSON
+              id: extract
+              run: |
+                # Use the Gitea environment file to safely grab the body
+                # This avoids any shell injection or 'command not found' errors
+                echo "Writing issue body to file..."
+                
+                # Create the file directly from the event path to avoid shell expansion
+                jq -r '.issue.body' "$GITHUB_EVENT_PATH" > raw_body.txt
+                
+                # Strip Windows line endings and extract the JSON object
+                tr -d '\r' < raw_body.txt | sed -n '/{/,/}/p' > temp_report.json
+                
+                # Validate and Process
+                if jq -e . temp_report.json >/dev/null 2>&1; then
+                  REPORT_ID=$(jq -r '.report_id' temp_report.json)
+                  if [ -z "$REPORT_ID" ] || [ "$REPORT_ID" == "null" ]; then 
+                    REPORT_ID="manual_$(date +%s)"
+                  fi
+                  mkdir -p data/reports
+                  cp temp_report.json "data/reports/${REPORT_ID}.json"
+                  echo "success=true" >> $GITHUB_OUTPUT
+                  echo "report_id=$REPORT_ID" >> $GITHUB_OUTPUT
+                  echo "✅ Successfully saved report: $REPORT_ID"
+                else
+                  echo "❌ Error: Content is not valid JSON"
+                  exit 1
+                fi
+
+      - name: Rebuild DATABASE.md Table
+        if: steps.extract.outputs.success == 'true'
+        run: |
+          python3 -c "
+          import json, os
+          reports = []
+          if os.path.exists('data/reports'):
+              for f in os.listdir('data/reports'):
+                  if f.endswith('.json'):
+                      try:
+                          with open(os.path.join('data/reports', f), 'r') as j:
+                              data = json.load(j)
+                              reports.append(data)
+                      except:
+                          continue
+          
+          reports.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+          
+          with open('DATABASE.md', 'w') as out:
+              out.write('# 🖥️ M&E Hardware Compatibility Database\n\n')
+              out.write('| Date | ID | OS | CPU | GPU | Status/Notes |\n')
+              out.write('| :--- | :--- | :--- | :--- | :--- | :--- |\n')
+              for r in reports:
+                  date = r.get('timestamp', 'N/A')[:10]
+                  rid = r.get('report_id', 'N/A')
+                  os_rel = r.get('system', {}).get('os_release', 'Unknown')
+                  cpu = r.get('processor', {}).get('model', 'Unknown')
+                  gpus = r.get('graphics', [])
+                  gpu_desc = gpus[0].get('device', 'N/A') if gpus else 'N/A'
+                  notes = r.get('user_notes', 'No notes provided')
+                  out.write(f'| {date} | `{rid}` | {os_rel} | {cpu} | {gpu_desc} | {notes} |\n')
+          "
+
+      - name: Commit and Push Changes
+        if: steps.extract.outputs.success == 'true'
+        run: |
+          git config --local user.email "runner@lab.local"
+          git config --local user.name "Gitea Runner"
+          git add data/reports/*.json DATABASE.md
+          git commit -m "Add report ${{ steps.extract.outputs.report_id }} and update database"
+          git push
+
+      - name: Success Feedback
+        if: steps.extract.outputs.success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "✅ **Submission Received!**"
+            });
+            github.rest.issues.update({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed'
+            });
