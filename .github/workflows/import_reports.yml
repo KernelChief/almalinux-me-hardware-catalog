@@ -17,23 +17,22 @@ jobs:
       - name: Extract and Validate JSON
         id: extract
         run: |
-          # 1. Grab the raw body
+          echo "Writing issue body to file..."
+          # 1. Grab the raw body from the GitHub Event
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" > raw_body.txt
           
-          # 2. Clean the data: 
+          # 2. Extract the JSON block:
           # - Strip Windows line endings (\r)
-          # - Remove Markdown code blocks (```json or ```)
-          # - Use sed to grab ONLY the first { to the last }
-          tr -d '\r' < raw_body.txt | \
-          sed 's/```json//g; s/```//g' | \
-          sed -n '/{/,/}/p' > temp_report.json
+          # - Remove any Markdown backticks (```)
+          # - Extract everything from the first '{' to the last '}'
+          tr -d '\r' < raw_body.txt | sed 's/```//g; s/json//g' | sed -n '/{/,/}/p' > temp_report.json
           
-          # 3. DEBUG: Print what we found to the log so we can see it
-          echo "--- START OF EXTRACTED DATA ---"
+          # 3. DEBUG: Print the result to the log so we can see what broke
+          echo "--- START EXTRACTED CONTENT ---"
           cat temp_report.json
-          echo "--- END OF EXTRACTED DATA ---"
+          echo "--- END EXTRACTED CONTENT ---"
           
-          # 4. Final Validation
+          # 4. Validate with jq
           if jq -e . temp_report.json >/dev/null 2>&1; then
             REPORT_ID=$(jq -r '.report_id' temp_report.json)
             if [ "$REPORT_ID" == "null" ] || [ -z "$REPORT_ID" ]; then 
@@ -45,8 +44,7 @@ jobs:
             echo "report_id=$REPORT_ID" >> $GITHUB_OUTPUT
             echo "✅ Successfully saved report: $REPORT_ID"
           else
-            echo "❌ Error: Content is still not valid JSON."
-            echo "Check for 'smart quotes' or missing commas in your issue body."
+            echo "❌ Error: Content is not valid JSON. Check the debug output above."
             exit 1
           fi
 
