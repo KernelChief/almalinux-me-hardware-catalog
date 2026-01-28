@@ -1,10 +1,11 @@
 name: Auto-import and Build Database
 on:
   issues:
-    types: [opened]
+    types: [opened, labeled] # Added labeled so it triggers if you add the label later
 
 jobs:
   process_report:
+    # This checks if the issue has the specific label
     if: contains(github.event.issue.labels.*.name, 'hardware-report')
     runs-on: ubuntu-latest
     permissions:
@@ -13,34 +14,35 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Good practice for pushes
 
       - name: Extract and Validate JSON
-              id: extract
-              run: |
-                # Use the Gitea environment file to safely grab the body
-                echo "Writing issue body to file..."
-                
-                # Create the file directly from the event path
-                jq -r '.issue.body' "$GITHUB_EVENT_PATH" > raw_body.txt
-                
-                # Strip Windows line endings and extract the JSON object
-                tr -d '\r' < raw_body.txt | sed -n '/{/,/}/p' > temp_report.json
-                
-                # Validate and Process
-                if jq -e . temp_report.json >/dev/null 2>&1; then
-                  REPORT_ID=$(jq -r '.report_id' temp_report.json)
-                  if [ -z "$REPORT_ID" ] || [ "$REPORT_ID" == "null" ]; then 
-                    REPORT_ID="manual_$(date +%s)"
-                  fi
-                  mkdir -p data/reports
-                  cp temp_report.json "data/reports/${REPORT_ID}.json"
-                  echo "success=true" >> $GITHUB_OUTPUT
-                  echo "report_id=$REPORT_ID" >> $GITHUB_OUTPUT
-                  echo "✅ Successfully saved report: $REPORT_ID"
-                else
-                  echo "❌ Error: Content is not valid JSON"
-                  exit 1
-                fi
+        id: extract
+        run: |
+          echo "Writing issue body to file..."
+          
+          # Extract body from the event JSON
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" > raw_body.txt
+          
+          # Strip Windows line endings (\r) and pull out the JSON block
+          tr -d '\r' < raw_body.txt | sed -n '/{/,/}/p' > temp_report.json
+          
+          # Check if valid JSON
+          if jq -e . temp_report.json >/dev/null 2>&1; then
+            REPORT_ID=$(jq -r '.report_id' temp_report.json)
+            if [ "$REPORT_ID" == "null" ] || [ -z "$REPORT_ID" ]; then 
+              REPORT_ID="manual_$(date +%s)"
+            fi
+            mkdir -p data/reports
+            cp temp_report.json "data/reports/${REPORT_ID}.json"
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "report_id=$REPORT_ID" >> $GITHUB_OUTPUT
+            echo "✅ Successfully saved report: $REPORT_ID"
+          else
+            echo "❌ Error: Content is not valid JSON"
+            exit 1
+          fi
 
       - name: Rebuild DATABASE.md Table
         if: steps.extract.outputs.success == 'true'
@@ -78,11 +80,13 @@ jobs:
       - name: Commit and Push Changes
         if: steps.extract.outputs.success == 'true'
         run: |
-          git config --local user.email "runner@lab.local"
-          git config --local user.name "Gitea Runner"
+          # Using the official GitHub Actions Bot identity
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add data/reports/*.json DATABASE.md
-          git commit -m "Add report ${{ steps.extract.outputs.report_id }} and update database"
-          git push
+          # Only commit if there are changes
+          git diff --quiet && git diff --staged --quiet || git commit -m "Add report ${{ steps.extract.outputs.report_id }} and update database"
+          git push origin main
 
       - name: Success Feedback
         if: steps.extract.outputs.success == 'true'
@@ -93,7 +97,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "✅ **Submission Received!**"
+              body: "✅ **Submission Received!** The hardware catalog has been updated."
             });
             github.rest.issues.update({
               issue_number: context.issue.number,
