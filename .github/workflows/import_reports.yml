@@ -1,11 +1,10 @@
 name: Auto-import and Build Database
 on:
   issues:
-    types: [opened, labeled] # Added labeled so it triggers if you add the label later
+    types: [opened, labeled]
 
 jobs:
   process_report:
-    # This checks if the issue has the specific label
     if: contains(github.event.issue.labels.*.name, 'hardware-report')
     runs-on: ubuntu-latest
     permissions:
@@ -14,21 +13,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Good practice for pushes
 
       - name: Extract and Validate JSON
         id: extract
         run: |
           echo "Writing issue body to file..."
-          
           # Extract body from the event JSON
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" > raw_body.txt
           
-          # Strip Windows line endings (\r) and pull out the JSON block
+          # Strip Windows line endings and extract the JSON block
           tr -d '\r' < raw_body.txt | sed -n '/{/,/}/p' > temp_report.json
           
-          # Check if valid JSON
+          # Validate JSON
           if jq -e . temp_report.json >/dev/null 2>&1; then
             REPORT_ID=$(jq -r '.report_id' temp_report.json)
             if [ "$REPORT_ID" == "null" ] || [ -z "$REPORT_ID" ]; then 
@@ -38,7 +34,6 @@ jobs:
             cp temp_report.json "data/reports/${REPORT_ID}.json"
             echo "success=true" >> $GITHUB_OUTPUT
             echo "report_id=$REPORT_ID" >> $GITHUB_OUTPUT
-            echo "✅ Successfully saved report: $REPORT_ID"
           else
             echo "❌ Error: Content is not valid JSON"
             exit 1
@@ -59,9 +54,7 @@ jobs:
                               reports.append(data)
                       except:
                           continue
-          
           reports.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-          
           with open('DATABASE.md', 'w') as out:
               out.write('# 🖥️ M&E Hardware Compatibility Database\n\n')
               out.write('| Date | ID | OS | CPU | GPU | Status/Notes |\n')
@@ -80,12 +73,10 @@ jobs:
       - name: Commit and Push Changes
         if: steps.extract.outputs.success == 'true'
         run: |
-          # Using the official GitHub Actions Bot identity
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add data/reports/*.json DATABASE.md
-          # Only commit if there are changes
-          git diff --quiet && git diff --staged --quiet || git commit -m "Add report ${{ steps.extract.outputs.report_id }} and update database"
+          git diff --quiet && git diff --staged --quiet || git commit -m "Add report ${{ steps.extract.outputs.report_id }}"
           git push origin main
 
       - name: Success Feedback
@@ -97,7 +88,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "✅ **Submission Received!** The hardware catalog has been updated."
+              body: "✅ **Submission Received!** Database updated."
             });
             github.rest.issues.update({
               issue_number: context.issue.number,
