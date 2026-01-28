@@ -8,7 +8,8 @@ This tool helps the **AlmaLinux Media & Entertainment (M&E) SIG** track hardware
 
 **Does this script send data automatically?** **No.** The script generates a local `almalinux_me_report.json` file. You have full control; you must manually review the file and choose to share it.
 
-**What is being collected?** * **Hardware:** CPU, GPU, and Motherboard models; RAM quantity and speeds.  
+**What is being collected?** 
+* **Hardware:** CPU, GPU, and Motherboard models; RAM quantity and speeds.  
 * **Software:** Kernel and Driver versions currently in use.  
 * **Feedback:** Your specific notes on performance or bugs.  
 
