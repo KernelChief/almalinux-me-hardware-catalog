@@ -15,10 +15,11 @@ jobs:
       workflows: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+          - name: Checkout repository
+            uses: actions/checkout@v4
+            with:
+              fetch-depth: 0
+              token: ${{ secrets.GH_PAT }}
 
       - name: Extract + validate JSON from Issue Form
         id: extract
