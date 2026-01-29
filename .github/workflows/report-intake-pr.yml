@@ -1,0 +1,117 @@
+name: Hardware Report Intake (PR gated)
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  process_report:
+    if: contains(github.event.issue.labels.*.name, 'hardware-report')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract and validate JSON from issue body
+        id: extract
+        run: |
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" > body.txt
+          tr -d '\r' < body.txt > body.clean.txt
+
+          python3 - <<'PY'
+          import re, json, sys
+
+          text = open("body.clean.txt", encoding="utf-8").read()
+
+          # Prefer fenced ```json blocks (Issue Forms render textarea this way)
+          m = re.search(r"```json\s*(\{.*?\})\s*```", text, flags=re.S)
+          if not m:
+              raise SystemExit("❌ No JSON block found. Please paste the full JSON.")
+
+          raw = m.group(1)
+
+          try:
+              obj = json.loads(raw)
+          except Exception as e:
+              raise SystemExit(f"❌ Invalid JSON: {e}")
+
+          report_id = obj.get("report_id")
+          if not report_id:
+              raise SystemExit("❌ JSON missing required field: report_id")
+
+          with open("temp_report.json", "w", encoding="utf-8") as f:
+              json.dump(obj, f, indent=2)
+
+          print(report_id)
+          PY
+
+          REPORT_ID=$(jq -r '.report_id' temp_report.json)
+          echo "report_id=$REPORT_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Store report JSON
+        run: |
+          mkdir -p data/reports
+          cp temp_report.json "data/reports/${{ steps.extract.outputs.report_id }}.json"
+
+      - name: Rebuild DATABASE.md
+        run: |
+          python3 scripts/build_database.py
+
+      - name: Create branch and commit
+        id: commit
+        run: |
+          BRANCH="report/${{ steps.extract.outputs.report_id }}"
+          git checkout -b "$BRANCH"
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          git add data/reports/*.json DATABASE.md
+          git commit -m "Add hardware report ${{ steps.extract.outputs.report_id }}"
+          git push --set-upstream origin "$BRANCH"
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Open Pull Request
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reportId = "${{ steps.extract.outputs.report_id }}";
+            const branch = "${{ steps.commit.outputs.branch }}";
+            const issueNumber = context.issue.number;
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Hardware report ${reportId} (pending approval)`,
+              head: branch,
+              base: "main",
+              body: [
+                `This PR was generated automatically from issue #${issueNumber}.`,
+                ``,
+                `**Report ID:** \`${reportId}\``,
+                `**Status:** Pending approval`,
+                ``,
+                `Merge this PR to publish the report into the database.`
+              ].join("\n")
+            });
+
+            core.setOutput("url", pr.data.html_url);
+
+      - name: Comment back on issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ **Report validated successfully**\n\nA Pull Request has been opened for approval:\n${"${{ steps.pr.outputs.url }}"}\n\nNothing is added to the public database until the PR is merged.`
+            });
