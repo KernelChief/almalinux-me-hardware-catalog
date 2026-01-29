@@ -1,5 +1,5 @@
-name: "🖥️ Hardware Report Submission"
-description: "Share a hardware compatibility report for AlmaLinux M&E / general workflows."
+name: 🖥️ Hardware Report Submission
+description: Share a hardware compatibility report for AlmaLinux M&E / general workflows.
 title: "Report: [ID HERE]"
 labels: ["hardware-report"]
 body:
@@ -8,19 +8,19 @@ body:
       value: |
         ## 🚀 Community Hardware Survey
 
-        Submit your report in **either** of these ways:
+        **GitHub Issue Forms cannot upload files.**  
+        Please **paste the full JSON** output from your report script.
 
-        **Option A (recommended): Paste JSON**
-        - Open your `almalinux_me_report.json` file
-        - Copy/paste the full contents into the JSON field below
+        **Quick way (Linux/macOS):**
+        1. Run the script to generate `almalinux_me_report.json`
+        2. Copy it into your clipboard:
+           - macOS: `cat almalinux_me_report.json | pbcopy`
+           - Linux (X11): `cat almalinux_me_report.json | xclip -selection clipboard`
+           - Linux (Wayland): `cat almalinux_me_report.json | wl-copy`
+        3. Paste into the **JSON Data** field below.
 
-        **Option B: Drag & drop the JSON file**
-        - Drag `almalinux_me_report.json` into this issue editor
-        - GitHub will upload it and insert a link
-        - You can leave the JSON field empty *if the file upload is present*
-
-        ✅ If valid, a **Pull Request** will be created for approval.
-        🔒 It is added to the public database **only after the PR is merged**.
+        ✅ If valid, automation will open a **Pull Request for approval**.  
+        🔒 Your report becomes public in the database **only after that PR is merged**.
 
   - type: input
     id: report_id
@@ -34,9 +34,22 @@ body:
   - type: textarea
     id: json_content
     attributes:
-      label: JSON Data (optional if you attached the file)
-      description: Paste the full content of `almalinux_me_report.json` OR attach the file by drag & drop above.
-      placeholder: "Paste the JSON here (optional if you attached the file)…"
+      label: JSON Data
+      description: Paste the **entire** content of `almalinux_me_report.json`.
+      placeholder: |
+        {
+          "report_id": "7e66c449",
+          "timestamp": "2026-01-29T12:34:56Z",
+          ...
+        }
       render: json
     validations:
-      required: false
+      required: true
+
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Confirmation
+      options:
+        - label: I confirm this report contains no confidential information (hostnames, usernames, internal IPs, etc.).
+          required: true
