@@ -6,7 +6,6 @@ on:
 
 jobs:
   process_report:
-    # Only run for issues created with the "hardware-report" label (from your Issue Form)
     if: contains(github.event.issue.labels.*.name, 'hardware-report')
     runs-on: ubuntu-latest
 
@@ -22,25 +21,23 @@ jobs:
       - name: Extract + validate JSON from Issue Form
         id: extract
         run: |
-          # Grab the issue body from the event payload (Issue Form content is rendered into the body)
           jq -r '.issue.body' "$GITHUB_EVENT_PATH" > body_raw.txt
           tr -d '\r' < body_raw.txt > body.txt
 
-          # Extract JSON from fenced ```json ... ``` block (preferred), else fallback to balanced braces
           python3 - <<'PY'
           import re, json, sys
 
           text = open("body.txt", "r", encoding="utf-8").read()
 
-          # 1) Prefer fenced code block
+          # Prefer fenced ```json ... ``` block (Issue Forms render the textarea this way)
           m = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, flags=re.S)
           if m:
               candidate = m.group(1)
           else:
-              # 2) Fallback: first balanced JSON object
+              # Fallback: find the first balanced JSON object
               start = text.find("{")
               if start == -1:
-                  raise SystemExit("No JSON object found in issue body. Paste full JSON in the form.")
+                  raise SystemExit("No JSON found in issue body. Paste the full JSON in the form.")
               depth = 0
               in_str = False
               esc = False
@@ -69,14 +66,11 @@ jobs:
 
           obj = json.loads(candidate)  # validate JSON
           rid = obj.get("report_id")
-          if not rid or rid == "null":
+          if not rid:
               raise SystemExit("JSON is valid but missing required field: report_id")
 
-          # Normalize output
           with open("temp_report.json", "w", encoding="utf-8") as f:
               json.dump(obj, f, indent=2)
-
-          print(rid)
           PY
 
           REPORT_ID="$(jq -r '.report_id' temp_report.json)"
@@ -87,26 +81,59 @@ jobs:
           mkdir -p data/reports
           cp temp_report.json "data/reports/${{ steps.extract.outputs.report_id }}.json"
 
-      - name: Rebuild DATABASE.md + UI index
+      - name: Build DATABASE.md (no docs/index.json)
         run: |
-          # If you use the build_database.py we created earlier, it will generate:
-          # - DATABASE.md
-          # - docs/index.json
-          python3 scripts/build_database.py
+          python3 - <<'PY'
+          import json, os
+
+          reports = []
+          if os.path.exists('data/reports'):
+              for f in os.listdir('data/reports'):
+                  if f.endswith('.json'):
+                      try:
+                          with open(os.path.join('data/reports', f), 'r', encoding='utf-8') as j:
+                              reports.append(json.load(j))
+                      except:
+                          continue
+
+          reports.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+
+          with open('DATABASE.md', 'w', encoding='utf-8') as out:
+              out.write('# 🖥️ M&E Hardware Compatibility Database\\n\\n')
+              out.write('> Generated automatically from approved reports (merge PR to publish).\\n\\n')
+              out.write('| Date | ID | OS | CPU | GPU | Notes |\\n')
+              out.write('| :--- | :--- | :--- | :--- | :--- | :--- |\\n')
+
+              for r in reports:
+                  date = (r.get('timestamp', 'N/A') or 'N/A')[:10]
+                  rid = r.get('report_id', 'N/A') or 'N/A'
+                  os_rel = r.get('system', {}).get('os_release', 'Unknown')
+                  cpu = r.get('processor', {}).get('model', 'Unknown')
+                  gpus = r.get('graphics', []) or []
+                  gpu_desc = gpus[0].get('device', 'N/A') if gpus else 'N/A'
+                  notes = (r.get('user_notes', 'No notes provided') or 'No notes provided').replace('\\n', ' ')
+                  if len(notes) > 180:
+                      notes = notes[:180] + '…'
+                  out.write(f'| {date} | `{rid}` | {os_rel} | {cpu} | {gpu_desc} | {notes} |\\n')
+          PY
 
       - name: Create branch, commit, and push
         id: branch
         run: |
-          BRANCH="report/${{ steps.extract.outputs.report_id }}-issue-${{ github.event.issue.number }}"
+          REPORT_ID="${{ steps.extract.outputs.report_id }}"
+          BRANCH="report/${REPORT_ID}-issue-${{ github.event.issue.number }}"
           git checkout -b "$BRANCH"
-      
+
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-      
-          git add "data/reports/${{ steps.extract.outputs.report_id }}.json" DATABASE.md docs/index.json
-          git commit -m "Add hardware report ${{ steps.extract.outputs.report_id }} (pending approval)"
-      
+
+          # Safety: never include workflow changes in auto-generated PRs
+          git restore --staged --worktree .github/workflows || true
+
+          git add "data/reports/${REPORT_ID}.json" DATABASE.md
+          git commit -m "Add hardware report ${REPORT_ID} (pending approval)"
           git push --set-upstream origin "$BRANCH"
+
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
       - name: Open Pull Request (approval gate)
@@ -132,9 +159,8 @@ jobs:
                 ``,
                 `Merge this PR to publish the report into:`,
                 `- \`data/reports/\``,
-                `- \`DATABASE.md\``,
-                `- \`docs/index.json\` (if enabled)`
-              ].join("\n")
+                `- \`DATABASE.md\``
+              ].join("\\n")
             });
 
             core.setOutput("pr_url", pr.data.html_url);
@@ -147,5 +173,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `✅ **Report validated successfully.**\n\n🧾 A Pull Request has been opened for approval:\n${"${{ steps.pr.outputs.pr_url }}"}\n\n🔒 This submission will only appear in the public database after the PR is merged.`
+              body: `✅ **Report validated successfully.**\\n\\n🧾 A Pull Request has been opened for approval:\\n${"${{ steps.pr.outputs.pr_url }}"}\\n\\n🔒 This submission appears in the database only after the PR is merged.`
             });
