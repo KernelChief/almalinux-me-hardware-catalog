@@ -97,18 +97,16 @@ jobs:
       - name: Create branch, commit, and push
         id: branch
         run: |
-          BRANCH="report/${{ steps.extract.outputs.report_id }}"
+          BRANCH="report/${{ steps.extract.outputs.report_id }}-issue-${{ github.event.issue.number }}"
           git checkout -b "$BRANCH"
-
+      
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-
-          # Include docs/index.json if your builder creates it
+      
           git add "data/reports/${{ steps.extract.outputs.report_id }}.json" DATABASE.md docs/index.json
-
           git commit -m "Add hardware report ${{ steps.extract.outputs.report_id }} (pending approval)"
+      
           git push --set-upstream origin "$BRANCH"
-
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
       - name: Open Pull Request (approval gate)
