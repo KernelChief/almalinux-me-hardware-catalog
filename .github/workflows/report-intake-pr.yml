@@ -15,11 +15,11 @@ jobs:
       workflows: write
 
     steps:
-          - name: Checkout repository
-            uses: actions/checkout@v4
-            with:
-              fetch-depth: 0
-              token: ${{ secrets.GH_PAT }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
 
       - name: Extract + validate JSON from Issue Form
         id: extract
@@ -109,12 +109,8 @@ jobs:
           
           git checkout -b "$BRANCH"
           
-          # Force clear any auto-generated files like docs/index.json
           git reset
-          
           git add "data/reports/${REPORT_ID}.json" DATABASE.md
-          
-          # Crucial: Reset the workflows folder to exactly what is on main
           git checkout HEAD -- .github/workflows/
           
           git commit -m "Add hardware report ${REPORT_ID}"
