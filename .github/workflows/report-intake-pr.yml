@@ -1,4 +1,4 @@
-name: Hardware Report Intake (PR gated)
+name: Hardware Report Intake (PR-gated)
 
 on:
   issues:
@@ -6,6 +6,7 @@ on:
 
 jobs:
   process_report:
+    # Only run for issues created with the "hardware-report" label (from your Issue Form)
     if: contains(github.event.issue.labels.*.name, 'hardware-report')
     runs-on: ubuntu-latest
 
@@ -18,53 +19,83 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract and validate JSON from issue body
+      - name: Extract + validate JSON from Issue Form
         id: extract
         run: |
-          jq -r '.issue.body' "$GITHUB_EVENT_PATH" > body.txt
-          tr -d '\r' < body.txt > body.clean.txt
+          # Grab the issue body from the event payload (Issue Form content is rendered into the body)
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" > body_raw.txt
+          tr -d '\r' < body_raw.txt > body.txt
 
+          # Extract JSON from fenced ```json ... ``` block (preferred), else fallback to balanced braces
           python3 - <<'PY'
           import re, json, sys
 
-          text = open("body.clean.txt", encoding="utf-8").read()
+          text = open("body.txt", "r", encoding="utf-8").read()
 
-          # Prefer fenced ```json blocks (Issue Forms render textarea this way)
-          m = re.search(r"```json\s*(\{.*?\})\s*```", text, flags=re.S)
-          if not m:
-              raise SystemExit("❌ No JSON block found. Please paste the full JSON.")
+          # 1) Prefer fenced code block
+          m = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, flags=re.S)
+          if m:
+              candidate = m.group(1)
+          else:
+              # 2) Fallback: first balanced JSON object
+              start = text.find("{")
+              if start == -1:
+                  raise SystemExit("No JSON object found in issue body. Paste full JSON in the form.")
+              depth = 0
+              in_str = False
+              esc = False
+              end = None
+              for i, ch in enumerate(text[start:], start=start):
+                  if in_str:
+                      if esc:
+                          esc = False
+                      elif ch == "\\":
+                          esc = True
+                      elif ch == '"':
+                          in_str = False
+                  else:
+                      if ch == '"':
+                          in_str = True
+                      elif ch == "{":
+                          depth += 1
+                      elif ch == "}":
+                          depth -= 1
+                          if depth == 0:
+                              end = i + 1
+                              break
+              if end is None:
+                  raise SystemExit("Could not find a complete JSON object in the issue body.")
+              candidate = text[start:end]
 
-          raw = m.group(1)
+          obj = json.loads(candidate)  # validate JSON
+          rid = obj.get("report_id")
+          if not rid or rid == "null":
+              raise SystemExit("JSON is valid but missing required field: report_id")
 
-          try:
-              obj = json.loads(raw)
-          except Exception as e:
-              raise SystemExit(f"❌ Invalid JSON: {e}")
-
-          report_id = obj.get("report_id")
-          if not report_id:
-              raise SystemExit("❌ JSON missing required field: report_id")
-
+          # Normalize output
           with open("temp_report.json", "w", encoding="utf-8") as f:
               json.dump(obj, f, indent=2)
 
-          print(report_id)
+          print(rid)
           PY
 
-          REPORT_ID=$(jq -r '.report_id' temp_report.json)
+          REPORT_ID="$(jq -r '.report_id' temp_report.json)"
           echo "report_id=$REPORT_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Store report JSON
+      - name: Save report JSON
         run: |
           mkdir -p data/reports
           cp temp_report.json "data/reports/${{ steps.extract.outputs.report_id }}.json"
 
-      - name: Rebuild DATABASE.md
+      - name: Rebuild DATABASE.md + UI index
         run: |
+          # If you use the build_database.py we created earlier, it will generate:
+          # - DATABASE.md
+          # - docs/index.json
           python3 scripts/build_database.py
 
-      - name: Create branch and commit
-        id: commit
+      - name: Create branch, commit, and push
+        id: branch
         run: |
           BRANCH="report/${{ steps.extract.outputs.report_id }}"
           git checkout -b "$BRANCH"
@@ -72,19 +103,21 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-          git add data/reports/*.json DATABASE.md
-          git commit -m "Add hardware report ${{ steps.extract.outputs.report_id }}"
+          # Include docs/index.json if your builder creates it
+          git add "data/reports/${{ steps.extract.outputs.report_id }}.json" DATABASE.md docs/index.json
+
+          git commit -m "Add hardware report ${{ steps.extract.outputs.report_id }} (pending approval)"
           git push --set-upstream origin "$BRANCH"
 
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
-      - name: Open Pull Request
+      - name: Open Pull Request (approval gate)
         id: pr
         uses: actions/github-script@v7
         with:
           script: |
             const reportId = "${{ steps.extract.outputs.report_id }}";
-            const branch = "${{ steps.commit.outputs.branch }}";
+            const branch = "${{ steps.branch.outputs.branch }}";
             const issueNumber = context.issue.number;
 
             const pr = await github.rest.pulls.create({
@@ -99,13 +132,16 @@ jobs:
                 `**Report ID:** \`${reportId}\``,
                 `**Status:** Pending approval`,
                 ``,
-                `Merge this PR to publish the report into the database.`
+                `Merge this PR to publish the report into:`,
+                `- \`data/reports/\``,
+                `- \`DATABASE.md\``,
+                `- \`docs/index.json\` (if enabled)`
               ].join("\n")
             });
 
-            core.setOutput("url", pr.data.html_url);
+            core.setOutput("pr_url", pr.data.html_url);
 
-      - name: Comment back on issue
+      - name: Comment back on the issue
         uses: actions/github-script@v7
         with:
           script: |
@@ -113,5 +149,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `✅ **Report validated successfully**\n\nA Pull Request has been opened for approval:\n${"${{ steps.pr.outputs.url }}"}\n\nNothing is added to the public database until the PR is merged.`
+              body: `✅ **Report validated successfully.**\n\n🧾 A Pull Request has been opened for approval:\n${"${{ steps.pr.outputs.pr_url }}"}\n\n🔒 This submission will only appear in the public database after the PR is merged.`
             });
