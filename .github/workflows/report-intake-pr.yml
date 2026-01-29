@@ -1,0 +1,41 @@
+name: Test Hardware Intake
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  test_validation:
+    if: contains(github.event.issue.labels.*.name, 'hardware-report')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Extract JSON
+        id: extract
+        run: |
+          # This finds the JSON block in the issue body
+          echo "${{ github.event.issue.body }}" | grep -oP '\{.*\}' > test_report.json
+          cat test_report.json
+          
+          if jq . test_report.json > /dev/null 2>&1; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment Result
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isValid = "${{ steps.extract.outputs.valid }}" === "true";
+            const body = isValid 
+              ? "✅ **Test Passed:** I can read your JSON perfectly. No Git errors here!" 
+              : "❌ **Test Failed:** The JSON in the issue body is malformed.";
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
