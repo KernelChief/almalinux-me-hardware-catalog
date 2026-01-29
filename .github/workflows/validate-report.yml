@@ -1,0 +1,36 @@
+name: Hardware Report Intake (Gate-Approved)
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  validate_and_deploy:
+    if: contains(github.event.issue.labels.*.name, 'hardware-report')
+    runs-on: ubuntu-latest
+    # This creates a "Review" button in the Actions UI
+    environment: Approved-Reports
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: reports-data # Work on the data-only branch
+
+      # ... [Insert your JSON Extraction Logic here] ...
+
+      - name: Commit to Data Branch
+        run: |
+          mkdir -p reports
+          cp temp_report.json "reports/${{ steps.extract.outputs.report_id }}.json"
+          
+          # Auto-generate a single index.json for the UI to read
+          jq -s '.' reports/*.json > all_reports.json
+          
+          git config user.name "Hardware Bot"
+          git config user.email "bot@almalinux.org"
+          git add reports/ all_reports.json
+          git commit -m "Add report ${{ steps.extract.outputs.report_id }}"
+          git push origin reports-data
