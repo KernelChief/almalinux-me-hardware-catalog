@@ -9,10 +9,16 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'hardware-report')
     runs-on: ubuntu-latest
     permissions:
-          contents: write
-          pull-requests: write
-          issues: write
-          workflows: write
+      contents: write
+      pull-requests: write
+      issues: write
+      workflows: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
     steps:
       - name: Checkout repository
