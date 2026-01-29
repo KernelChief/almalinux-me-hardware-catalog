@@ -11,7 +11,7 @@ body:
         **GitHub Issue Forms cannot upload files.**  
         Please **paste the full JSON** output from your report script.
 
-        **Quick way (Linux):**
+        **Quick way:**
         1. Run the script to generate `almalinux_me_report.json`
         2. Copy it into your clipboard:
            - Linux (X11): `cat almalinux_me_report.json | xclip -selection clipboard`
