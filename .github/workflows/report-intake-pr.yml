@@ -1,41 +1,109 @@
-name: Test Hardware Intake
+name: Hardware Report Intake (PR-gated)
+
 on:
   issues:
-    types: [opened, labeled]
+    types: [opened]
 
 jobs:
-  test_validation:
+  process_report:
     if: contains(github.event.issue.labels.*.name, 'hardware-report')
     runs-on: ubuntu-latest
+
     permissions:
+      contents: write
+      pull-requests: write
       issues: write
 
     steps:
-      - name: Extract JSON
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract + validate JSON from issue body
         id: extract
         run: |
-          # This finds the JSON block in the issue body
-          echo "${{ github.event.issue.body }}" | grep -oP '\{.*\}' > test_report.json
-          cat test_report.json
-          
-          if jq . test_report.json > /dev/null 2>&1; then
-            echo "valid=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "valid=false" >> "$GITHUB_OUTPUT"
-          fi
+          jq -r '.issue.body' "$GITHUB_EVENT_PATH" > body_raw.txt
+          tr -d '\r' < body_raw.txt > body.txt
 
-      - name: Comment Result
+          python3 - <<'PY'
+          import re, json, sys
+
+          text = open("body.txt", "r", encoding="utf-8").read()
+
+          # Issue Forms usually wrap textarea in a fenced block
+          m = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, flags=re.S)
+          if not m:
+              raise SystemExit("No fenced JSON block found. Paste full JSON in the JSON field.")
+          obj = json.loads(m.group(1))
+
+          rid = obj.get("report_id")
+          if not rid:
+              raise SystemExit("Missing required field: report_id")
+
+          with open("temp_report.json", "w", encoding="utf-8") as f:
+              json.dump(obj, f, indent=2)
+          PY
+
+          echo "report_id=$(jq -r .report_id temp_report.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Save report
+        run: |
+          mkdir -p data/reports
+          cp temp_report.json "data/reports/${{ steps.extract.outputs.report_id }}.json"
+
+      - name: Build DATABASE.md + docs/index.json
+        run: |
+          python3 scripts/build_database.py
+
+      - name: Create branch + commit + push
+        id: branch
+        run: |
+          REPORT_ID="${{ steps.extract.outputs.report_id }}"
+          BRANCH="report/${REPORT_ID}-issue-${{ github.event.issue.number }}"
+          git checkout -b "$BRANCH"
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          # Safety: never include workflow file changes
+          git restore --staged --worktree .github/workflows || true
+
+          git add "data/reports/${REPORT_ID}.json" DATABASE.md docs/index.json
+          git commit -m "Add hardware report ${REPORT_ID} (pending approval)"
+          git push --set-upstream origin "$BRANCH"
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR
+        id: pr
         uses: actions/github-script@v7
         with:
           script: |
-            const isValid = "${{ steps.extract.outputs.valid }}" === "true";
-            const body = isValid 
-              ? "✅ **Test Passed:** I can read your JSON perfectly. No Git errors here!" 
-              : "❌ **Test Failed:** The JSON in the issue body is malformed.";
-            
-            github.rest.issues.createComment({
+            const reportId = "${{ steps.extract.outputs.report_id }}";
+            const branch = "${{ steps.branch.outputs.branch }}";
+            const issueNumber = context.issue.number;
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Hardware report ${reportId} (pending approval)`,
+              head: branch,
+              base: "main",
+              body: [
+                `Generated from issue #${issueNumber}.`,
+                ``,
+                `Merge this PR to publish the report to the database + UI.`
+              ].join("\n")
+            });
+
+            core.setOutput("pr_url", pr.data.html_url);
+
+      - name: Comment on issue with PR link
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: body
+              body: `✅ Valid report received.\n\nPR for approval:\n${"${{ steps.pr.outputs.pr_url }}"}\n\nNothing is public until this PR is merged.`
             });
