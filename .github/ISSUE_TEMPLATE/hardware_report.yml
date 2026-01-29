@@ -1,14 +1,27 @@
-name: 🖥️ Hardware Report Submission
-description: Help the AlmaLinux M&E community by sharing your hardware compatibility.
+name: :desktop_computer: Hardware Report Submission
+description: Share a hardware compatibility report for AlmaLinux M&E / general workflows.
 title: "Report: [ID HERE]"
 labels: ["hardware-report"]
 body:
   - type: markdown
     attributes:
       value: |
-        ## 🚀 Community Hardware Survey
-        Thank you for helping us build the AlmaLinux M&E ecosystem! 
-        Once you submit this form, our automation will automatically process your data.
+        ## :rocket: Community Hardware Survey
+
+        Submit your report in **either** of these ways:
+
+        **Option A (recommended): Paste JSON**
+        - Open your `almalinux_me_report.json` file
+        - Copy/paste the full contents into the JSON field below
+
+        **Option B: Drag & drop the JSON file**
+        - Drag `almalinux_me_report.json` into this issue editor
+        - GitHub will upload it and insert a link
+        - You can leave the JSON field empty *if the file upload is present*
+
+        :white_check_mark: If valid, a **Pull Request** will be created for approval.
+        :lock: It is added to the public database **only after the PR is merged**.
+
   - type: input
     id: report_id
     attributes:
@@ -17,12 +30,13 @@ body:
       placeholder: "e.g., 7e66c449"
     validations:
       required: true
+
   - type: textarea
     id: json_content
     attributes:
-      label: JSON Data
-      description: Paste the content of your `almalinux_me_report.json` file below.
-      placeholder: "Paste the JSON content here..."
+      label: JSON Data (optional if you attached the file)
+      description: Paste the full content of `almalinux_me_report.json` OR attach the file by drag & drop above.
+      placeholder: "Paste the JSON here (optional if you attached the file)…"
       render: json
     validations:
-      required: true
+      required: false
