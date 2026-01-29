@@ -1,5 +1,5 @@
-name: :desktop_computer: Hardware Report Submission
-description: Share a hardware compatibility report for AlmaLinux M&E / general workflows.
+name: : "desktop_computer: Hardware Report Submission"
+description: "Share a hardware compatibility report for AlmaLinux M&E / general workflows."
 title: "Report: [ID HERE]"
 labels: ["hardware-report"]
 body:
