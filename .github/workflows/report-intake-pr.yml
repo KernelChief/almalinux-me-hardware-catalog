@@ -8,11 +8,11 @@ jobs:
   process_report:
     if: contains(github.event.issue.labels.*.name, 'hardware-report')
     runs-on: ubuntu-latest
-
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
+          contents: write
+          pull-requests: write
+          issues: write
+          workflows: write
 
     steps:
       - name: Checkout repository
@@ -118,23 +118,26 @@ jobs:
           PY
 
       - name: Create branch, commit, and push
-        id: branch
-        run: |
-          REPORT_ID="${{ steps.extract.outputs.report_id }}"
-          BRANCH="report/${REPORT_ID}-issue-${{ github.event.issue.number }}"
-          git checkout -b "$BRANCH"
-
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-
-          # Safety: never include workflow changes in auto-generated PRs
-          git restore --staged --worktree .github/workflows || true
-
-          git add "data/reports/${REPORT_ID}.json" DATABASE.md
-          git commit -m "Add hardware report ${REPORT_ID} (pending approval)"
-          git push --set-upstream origin "$BRANCH"
-
-          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+              id: branch
+              run: |
+                REPORT_ID="${{ steps.extract.outputs.report_id }}"
+                BRANCH="report/${REPORT_ID}-issue-${{ github.event.issue.number }}"
+                git checkout -b "$BRANCH"
+      
+                git config user.name "GitHub Actions"
+                git config user.email "actions@github.com"
+      
+                # Explicitly add ONLY the files you want to change
+                git add "data/reports/${REPORT_ID}.json"
+                git add DATABASE.md
+                
+                # Forcefully ensure no workflow files are in the index
+                git reset HEAD .github/workflows/
+      
+                git commit -m "Add hardware report ${REPORT_ID} (pending approval)"
+                git push --set-upstream origin "$BRANCH"
+      
+                echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
       - name: Open Pull Request (approval gate)
         id: pr
