@@ -1,154 +1,157 @@
 #!/usr/bin/env bash
 #
-# AlmaLinux M&E Hardware Reporting Script v1.0
+# AlmaLinux M&E Hardware Reporting Script
 # Copyright (C) 2026
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# GPLv3
 #
 # --------------------------------------------------------------------
-# What this script does:
+# SECTION 1: M&E QUICK HARDWARE SURVEY (SAFE / NON-DESTRUCTIVE)
+# --------------------------------------------------------------------
 # - DOES NOT send any data over the network
-# - Collects local hardware + OS details and writes a local JSON report
-# - You manually submit the JSON to GitHub (PR approval gate recommended)
+# - Collects basic hardware + OS details
+# - Writes a local JSON file
+# - User manually submits JSON to GitHub
+#
+# SECTION 2: OPTIONAL CERTIFICATION SIG SCAN (DESTRUCTIVE / OPT-IN)
+# --------------------------------------------------------------------
+# - VERY HEAVY system load
+# - Uses benchmarks (Phoronix)
+# - Sends results upstream automatically
+# - Requires explicit user confirmation
 # --------------------------------------------------------------------
 
 set -euo pipefail
 
-VERSION="1.0"
+VERSION="1.2"
 OUTPUT_FILE="almalinux_me_report.json"
 
-# Stable-ish ID: hostname + epoch + random, hashed down
-REPORT_ID="$(echo "${HOSTNAME:-unknown}-$(date +%s)-$RANDOM" | md5sum | awk '{print $1}' | head -c 8)"
+REPORT_ID="$(echo "${HOSTNAME:-unknown}-$(date +%s)-$RANDOM" \
+  | md5sum | awk '{print $1}' | head -c 8)"
 
-# -------- helpers --------
+# ==============================================================
+# Helpers (shared)
+# ==============================================================
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
+die() {
+  echo "❌ $*" >&2
+  exit 1
+}
+
 json_escape() {
-  # Escapes a string for JSON value context (without surrounding quotes)
-  # Uses Python's json.dumps for correctness.
   python3 - "$1" <<'PY'
 import json,sys
-s=sys.argv[1]
-print(json.dumps(s)[1:-1])
+print(json.dumps(sys.argv[1])[1:-1])
 PY
 }
 
-require_deps() {
-  local missing=0
+prompt_yes_no() {
+  local ans
+  read -r -p "$1 [y/N]: " ans
+  [[ "${ans,,}" =~ ^y(es)?$ ]]
+}
 
-  for cmd in lspci lshw dmidecode free uname nproc awk grep cut tr xargs md5sum; do
-    if ! have_cmd "$cmd"; then
-      echo "❌ Missing required command: $cmd"
-      missing=1
-    fi
-  done
+# ==============================================================
+# SECTION 1 — M&E QUICK HARDWARE SURVEY
+# ==============================================================
 
-  if ! have_cmd python3; then
-    echo "❌ Missing required command: python3"
+echo "======================================================="
+echo " AlmaLinux M&E Hardware Survey (Quick / Safe)"
+echo "======================================================="
+echo "Report ID: $REPORT_ID"
+echo
+
+# ---- dependency check (survey only) ----
+missing=0
+for cmd in lspci free uname nproc python3 awk grep cut tr xargs md5sum; do
+  if ! have_cmd "$cmd"; then
+    echo "❌ Missing required command: $cmd"
     missing=1
   fi
+done
 
-  if [ "$missing" -eq 1 ]; then
-    echo
-    echo "Please install missing dependencies and re-run."
-    echo "On Alma/RHEL: sudo dnf install -y pciutils lshw dmidecode python3"
-    exit 1
-  fi
-}
-
-get_os_name() {
-  if [ -r /etc/os-release ]; then
-    local pretty
-    pretty="$(grep -E '^PRETTY_NAME=' /etc/os-release | cut -d= -f2- | tr -d '"')"
-    if [ -n "${pretty:-}" ]; then
-      echo "$pretty"
-      return
-    fi
-  fi
-
-  if [ -r /etc/almalinux-release ]; then
-    cat /etc/almalinux-release
-  elif [ -r /etc/redhat-release ]; then
-    cat /etc/redhat-release
-  else
-    echo "Unknown OS"
-  fi
-}
-
-# -------- main --------
-
-echo "-------------------------------------------------------"
-echo "AlmaLinux M&E Hardware Reporting Tool v$VERSION [$REPORT_ID]"
-echo "-------------------------------------------------------"
-
-require_deps
-
-read -r -p "Any notes (bugs, performance, 'all good')?: " USER_NOTES
-
-OS_NAME="$(get_os_name)"
-
-# Memory modules via dmidecode (requires sudo)
-mem_info=""
-
-if sudo -n true >/dev/null 2>&1; then
-  DMIDECODE_CMD=(sudo dmidecode -t 17)
-else
-  echo
-  echo "⚠️ dmidecode typically requires sudo to read memory module details."
-  echo "   You'll be prompted for sudo password (if allowed)."
-  DMIDECODE_CMD=(sudo dmidecode -t 17)
+# dmidecode is optional now (we'll still produce JSON without module list)
+if ! have_cmd dmidecode; then
+  echo "⚠️ dmidecode not found: memory module details will be skipped."
 fi
 
-mem_info="$("${DMIDECODE_CMD[@]}" 2>/dev/null | awk '
-  /Size: [0-9]/ { s=$2" "$3 }
-  /Speed: [0-9]/ { sp=$2" "$3 }
-  /Manufacturer:/ { m=$2 }
-  /Configured Memory Speed: [0-9]/ { cs=$4" "$5 }
-  /Locator:/ {
-    if(s!="") {
-      if(found) printf ",\n";
-      printf "    {\"size\": \"%s\", \"speed\": \"%s\", \"configured_speed\": \"%s\", \"manufacturer\": \"%s\"}", s, sp, cs, m;
-      found=1; s=""; sp=""; cs=""; m="";
-    }
-  }
-' || true)"
+if [ "$missing" -eq 1 ]; then
+  echo
+  echo "Install on Alma/RHEL with:"
+  echo "  sudo dnf install -y pciutils python3"
+  echo "Optional (for memory module details):"
+  echo "  sudo dnf install -y dmidecode"
+  exit 1
+fi
 
-mem_info="${mem_info:-}"
+read -r -p "Any notes (bugs, performance, 'all good')?: " USER_NOTES
+echo
 
-# GPU list (escape device + driver)
-gpu_json=""
+# ---- OS ----
+if [ -r /etc/os-release ]; then
+  OS_NAME="$(grep -E '^PRETTY_NAME=' /etc/os-release | cut -d= -f2- | tr -d '"')"
+else
+  OS_NAME="Unknown"
+fi
+
+# ---- CPU ----
+CPU_MODEL="$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2- | xargs || true)"
+CPU_CORES="$(nproc)"
+
+# ---- Memory totals ----
+MEM_TOTAL_GB="$(free -g | awk '/^Mem:/{print $2}' || echo "")"
+
+# ---- Memory modules (optional; no sudo required, will attempt sudo if allowed) ----
+MEM_MODULES=""
+if have_cmd dmidecode; then
+  DMIDECODE_OUT=""
+  if sudo -n true >/dev/null 2>&1; then
+    DMIDECODE_OUT="$(sudo dmidecode -t 17 2>/dev/null || true)"
+  else
+    # Try without sudo (will often fail); don't stop the survey if it fails
+    DMIDECODE_OUT="$(dmidecode -t 17 2>/dev/null || true)"
+  fi
+
+  if [ -n "$DMIDECODE_OUT" ]; then
+    MEM_MODULES="$(printf "%s" "$DMIDECODE_OUT" | awk '
+      /Size: [0-9]/ { s=$2" "$3 }
+      /Speed: [0-9]/ { sp=$2" "$3 }
+      /Manufacturer:/ { m=$2 }
+      /Configured Memory Speed:/ { cs=$4" "$5 }
+      /Locator:/ {
+        if(s!=""){
+          if(found) printf ",\n";
+          printf "    {\"size\":\"%s\",\"speed\":\"%s\",\"configured_speed\":\"%s\",\"manufacturer\":\"%s\"}", s, sp, cs, m;
+          found=1; s=""; sp=""; cs=""; m=""
+        }
+      }'
+    )"
+  else
+    echo "⚠️ Could not read memory module details (dmidecode requires sudo on most systems)."
+  fi
+fi
+
+# ---- GPU ----
+GPU_JSON=""
 while read -r line; do
-  slot="$(echo "$line" | cut -d' ' -f1)"
-  name="$(echo "$line" | cut -d: -f3- | xargs)"
-  driver="$(lspci -nnk -s "$slot" 2>/dev/null | grep -m1 "Kernel driver in use" | cut -d: -f2- | xargs || true)"
-
-  [ -n "$gpu_json" ] && gpu_json="$gpu_json,"
-  gpu_json="$gpu_json {\"device\": \"$(json_escape "$name")\", \"driver\": \"$(json_escape "$driver")\"}"
+  SLOT="${line%% *}"
+  NAME="$(echo "$line" | cut -d: -f3- | xargs)"
+  DRIVER="$(lspci -nnk -s "$SLOT" 2>/dev/null | grep -m1 'Kernel driver in use' | cut -d: -f2- | xargs || true)"
+  [ -n "$GPU_JSON" ] && GPU_JSON+=","
+  GPU_JSON+=" {\"device\":\"$(json_escape "$NAME")\",\"driver\":\"$(json_escape "$DRIVER")\"}"
 done < <(lspci 2>/dev/null | grep -E "VGA|3D|Display" || true)
 
-# Storage controllers (escape device)
-storage_json="$(
-  lspci 2>/dev/null | grep -i "storage" | while read -r line; do
-    dev="$(echo "$line" | cut -d: -f3- | xargs)"
-    printf "    {\"device\": \"%s\"}\n" "$(json_escape "$dev")"
-  done | paste -sd "," - || true
+# ---- Storage ----
+STORAGE_JSON="$(
+lspci 2>/dev/null | grep -i storage | while read -r l; do
+  DEV="$(echo "$l" | cut -d: -f3- | xargs)"
+  printf "    {\"device\":\"%s\"}\n" "$(json_escape "$DEV")"
+done | paste -sd "," - || true
 )"
 
-cpu_model="$(grep -m 1 'model name' /proc/cpuinfo | cut -d: -f2- | xargs || true)"
-mem_total_gb="$(free -g | awk '/^Mem:/{print $2}' || echo "")"
-
+# ---- Write JSON (always valid) ----
 cat > "$OUTPUT_FILE" <<EOF
 {
   "report_id": "$REPORT_ID",
@@ -160,27 +163,78 @@ cat > "$OUTPUT_FILE" <<EOF
     "platform": "$(json_escape "$(uname -m)")"
   },
   "processor": {
-    "model": "$(json_escape "$cpu_model")",
-    "cores": "$(nproc)"
+    "model": "$(json_escape "$CPU_MODEL")",
+    "cores": "$CPU_CORES"
   },
   "memory": {
-    "total_gb": "$(json_escape "$mem_total_gb")",
-    "modules": [ ${mem_info} ]
+    "total_gb": "$(json_escape "$MEM_TOTAL_GB")",
+    "modules": [ ${MEM_MODULES} ]
   },
-  "graphics": [ ${gpu_json} ],
+  "graphics": [ ${GPU_JSON} ],
   "storage_controllers": [
-${storage_json}
+${STORAGE_JSON}
   ]
 }
 EOF
 
-echo "-------------------------------------------------------"
-echo "DONE! Report ID: $REPORT_ID"
-echo "File saved to: $OUTPUT_FILE"
-echo "-------------------------------------------------------"
+echo "✅ M&E survey complete."
+echo "File written: $OUTPUT_FILE"
+echo
 echo "SUBMISSION INSTRUCTIONS:"
-echo "1. Go to: https://github.com/AlmaLinux/me-sig-workson/issues/new"
-echo "2. Select 'Hardware Report Submission'"
-echo "3. Use [$REPORT_ID] as the Report ID"
-echo "4. Paste the content of $OUTPUT_FILE into the JSON field."
-echo "-------------------------------------------------------"
+echo "1. Open the Hardware Report issue form in your repo"
+echo "2. Use Report ID: $REPORT_ID"
+echo "3. Paste the content of $OUTPUT_FILE into the JSON field"
+echo
+
+# ==============================================================
+# SECTION 2 — CERTIFICATION SIG (OPTIONAL / DESTRUCTIVE)
+# ==============================================================
+
+echo "======================================================="
+echo " AlmaLinux Hardware Certification (OPTIONAL)"
+echo "======================================================="
+echo "⚠️  WARNING:"
+echo "This will heavily stress the system and may make it unusable"
+echo "for the duration of the benchmarks."
+echo
+echo "Results WILL be sent automatically to the AlmaLinux"
+echo "Hardware Certification SIG."
+echo
+echo "More info:"
+echo "https://github.com/AlmaLinux/Hardware-Certification-Suite"
+echo
+
+if ! prompt_yes_no "Run Certification SIG benchmarks now"; then
+  echo "Certification skipped. Exiting."
+  exit 0
+fi
+
+echo
+echo "Proceeding with Certification SIG scan..."
+echo
+
+sudo dnf install -y git-core tmux python3 python3-pip
+
+WORKDIR="$PWD"
+SUITE_DIR="$WORKDIR/Hardware-Certification-Suite"
+
+[ -d "$SUITE_DIR" ] || git clone https://github.com/AlmaLinux/Hardware-Certification-Suite.git "$SUITE_DIR"
+
+python3 -m venv venv
+# shellcheck disable=SC1091
+source venv/bin/activate
+pip install --upgrade pip ansible
+
+cd "$SUITE_DIR"
+
+SESSION="almalinux-certification-tests"
+CMD="ansible-playbook -c local -i 127.0.0.1, automated.yml --tags=phoronix"
+
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+  echo "tmux session already running: $SESSION"
+  echo "Attach with: tmux attach -t $SESSION"
+else
+  tmux new-session -d -s "$SESSION" "$CMD; echo; echo 'Done. Press Enter to exit.'; read -r"
+  echo "Certification started in tmux session: $SESSION"
+  echo "Attach with: tmux attach -t $SESSION"
+fi
