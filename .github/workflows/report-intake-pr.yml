@@ -128,19 +128,26 @@ jobs:
               run: |
                 REPORT_ID="${{ steps.extract.outputs.report_id }}"
                 BRANCH="report/${REPORT_ID}-issue-${{ github.event.issue.number }}"
-                git checkout -b "$BRANCH"
-      
+                
+                # Initialize config
                 git config user.name "GitHub Actions"
                 git config user.email "actions@github.com"
       
-                # Explicitly add ONLY the files you want to change
+                # Create and switch to branch
+                git checkout -b "$BRANCH"
+                
+                # 1. UNSTAGE EVERYTHING (This clears the docs/index.json error)
+                git reset
+                
+                # 2. ONLY add the two specific files required
                 git add "data/reports/${REPORT_ID}.json"
                 git add DATABASE.md
                 
-                # Forcefully ensure no workflow files are in the index
-                git reset HEAD .github/workflows/
-      
-                git commit -m "Add hardware report ${REPORT_ID} (pending approval)"
+                # 3. Double check: Ensure .github/ is completely untouched and removed from the commit
+                git checkout HEAD -- .github/
+                
+                # 4. Commit and Push
+                git commit -m "Add hardware report ${REPORT_ID}"
                 git push --set-upstream origin "$BRANCH"
       
                 echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
