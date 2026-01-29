@@ -1,4 +1,4 @@
-name: : "desktop_computer: Hardware Report Submission"
+name: "🖥️ Hardware Report Submission"
 description: "Share a hardware compatibility report for AlmaLinux M&E / general workflows."
 title: "Report: [ID HERE]"
 labels: ["hardware-report"]
@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## :rocket: Community Hardware Survey
+        ## 🚀 Community Hardware Survey
 
         Submit your report in **either** of these ways:
 
@@ -19,8 +19,8 @@ body:
         - GitHub will upload it and insert a link
         - You can leave the JSON field empty *if the file upload is present*
 
-        :white_check_mark: If valid, a **Pull Request** will be created for approval.
-        :lock: It is added to the public database **only after the PR is merged**.
+        ✅ If valid, a **Pull Request** will be created for approval.
+        🔒 It is added to the public database **only after the PR is merged**.
 
   - type: input
     id: report_id
