@@ -215,6 +215,11 @@ lspci 2>/dev/null | grep -i storage | while read -r l; do
 done | paste -sd "," - || true
 )"
 
+# ---- Output file safety (in case OUTPUT_FILE_JSON is empty) ----
+if [ -z "$OUTPUT_FILE_JSON" ]; then
+  OUTPUT_FILE_JSON="almalinux_me_report.json"
+fi
+
 # ---- Write JSON (always valid) ----
 cat > "$OUTPUT_FILE_JSON" <<EOF
 {
