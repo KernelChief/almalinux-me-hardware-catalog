@@ -9,3 +9,7 @@ Welcome! This site lists community-submitted hardware reports for AlmaLinux M&E 
 
 ## Browse results
 Use the site search or your browser's find (Ctrl+F) to locate hardware models quickly.
+
+<!-- REPORTS_TABLE_START -->
+_No reports yet. Submitted reports will appear here after approval._
+<!-- REPORTS_TABLE_END -->

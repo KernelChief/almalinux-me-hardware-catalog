@@ -1,5 +1,3 @@
 title: Results
-preserve_directory_names: true
-flatten_single_child_sections: true
 nav:
-  - "*"
+  - index.md

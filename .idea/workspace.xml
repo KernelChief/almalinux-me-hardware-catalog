@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Fixed workflow issue.">
-      <change beforePath="$PROJECT_DIR$/data/reports/917c6502.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/results/492f71ec/index.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/results/917c6502/index.md" beforeDir="false" />
+    <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Updated workflow">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +13,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="11" />
+    <option name="cachedIndexableFilesCount" value="19" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -104,7 +102,8 @@
       <workItem from="1769698911141" duration="325000" />
       <workItem from="1769699256250" duration="5813000" />
       <workItem from="1769708268777" duration="1435000" />
-      <workItem from="1769732526662" duration="4938000" />
+      <workItem from="1769732526662" duration="5276000" />
+      <workItem from="1769737875418" duration="336000" />
     </task>
     <task id="LOCAL-00001" summary="Upload all of the scripts etc.">
       <option name="closed" value="true" />
@@ -386,7 +385,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769736760514</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Deleted test.">
+      <option name="closed" value="true" />
+      <created>1769737477364</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1769737477364</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Updated workflow">
+      <option name="closed" value="true" />
+      <created>1769737630485</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1769737630485</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -441,6 +456,8 @@
     <MESSAGE value="Changed script to prompt for the certification SIG script to be optional after our basic script." />
     <MESSAGE value="Changed whole script and way of actions / page is working (full rethink)" />
     <MESSAGE value="Fixed workflow issue." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed workflow issue." />
+    <MESSAGE value="Deleted test." />
+    <MESSAGE value="Updated workflow" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated workflow" />
   </component>
 </project>
