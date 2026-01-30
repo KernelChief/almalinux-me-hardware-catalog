@@ -26,6 +26,18 @@ set -euo pipefail
 VERSION="1.3"
 OUTPUT_FILE_JSON="almalinux_me_report.json"
 
+# If running via curl | bash, stdin is the script itself.
+# Re-exec from a temp file so we can read prompts from /dev/tty.
+if [ -z "${ALMA_SURVEY_NO_REEXEC:-}" ] && [ ! -t 0 ]; then
+  if [ -r /dev/tty ] && [ -w /dev/tty ]; then
+    tmp_script="$(mktemp -t almalinux-me-hardware-survey.XXXXXX)"
+    cat > "$tmp_script"
+    chmod +x "$tmp_script"
+    export ALMA_SURVEY_NO_REEXEC=1
+    exec bash "$tmp_script" </dev/tty
+  fi
+fi
+
 # If the script is piped (curl | bash), stdin is not a TTY.
 # Use /dev/tty for prompts so interactive questions still work.
 PROMPT_IN=0
