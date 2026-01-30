@@ -11,5 +11,7 @@ Welcome! This site lists community-submitted hardware reports for AlmaLinux M&E 
 Use the site search or your browser's find (Ctrl+F) to locate hardware models quickly.
 
 <!-- REPORTS_TABLE_START -->
-_No reports yet. Submitted reports will appear here after approval._
+| Report ID | Timestamp (UTC) | System | Processor | Memory (GB) |
+| --- | --- | --- | --- | --- |
+| [dc672f7e](./results/dc672f7e/) | 2026-01-30T01:06:25Z |  | QEMU Virtual CPU version 2.5+ | 3 |
 <!-- REPORTS_TABLE_END -->
