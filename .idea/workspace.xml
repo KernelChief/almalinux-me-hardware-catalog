@@ -5,11 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Fixed workflow issue.">
-      <change beforePath="$PROJECT_DIR$/.almalinux-me-hardware-survey-report-id" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/almalinux_me_report.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/almalinux_me_report.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/almalinux_me_report.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/917c6502.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/results/492f71ec/index.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/results/917c6502/index.md" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +19,6 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -107,7 +104,7 @@
       <workItem from="1769698911141" duration="325000" />
       <workItem from="1769699256250" duration="5813000" />
       <workItem from="1769708268777" duration="1435000" />
-      <workItem from="1769732526662" duration="4224000" />
+      <workItem from="1769732526662" duration="4938000" />
     </task>
     <task id="LOCAL-00001" summary="Upload all of the scripts etc.">
       <option name="closed" value="true" />
@@ -381,7 +378,15 @@
       <option name="project" value="LOCAL" />
       <updated>1769735754311</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="Fixed workflow issue.">
+      <option name="closed" value="true" />
+      <created>1769736760514</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1769736760514</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
