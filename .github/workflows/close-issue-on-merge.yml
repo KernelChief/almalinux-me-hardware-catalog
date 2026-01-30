@@ -1,0 +1,39 @@
+name: Close Issue On Report Merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+
+jobs:
+  close-issue:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'report/issue-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close related issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ref = context.payload.pull_request.head.ref;
+            const match = ref.match(/^report\/issue-(\d+)$/);
+            if (!match) {
+              core.setFailed(`Unexpected branch name: ${ref}`);
+              return;
+            }
+            const issueNumber = parseInt(match[1], 10);
+            const prUrl = context.payload.pull_request.html_url;
+            const body = `✅ Report merged. Closing issue.\n\nPR: ${prUrl}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              state: 'closed'
+            });

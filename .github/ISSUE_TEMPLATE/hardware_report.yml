@@ -11,12 +11,15 @@ body:
         **GitHub Issue Forms cannot upload files.**  
         Please **paste the full JSON** output from your report script.
 
-        **Quick way:**
+        **Quick way (paste exact file contents):**
         1. Run the script to generate `almalinux_me_report.json`
         2. Copy it into your clipboard:
            - Linux (X11): `cat almalinux_me_report.json | xclip -selection clipboard`
            - Linux (Wayland): `cat almalinux_me_report.json | wl-copy`
         3. Paste into the **JSON Data** field below.
+
+        ⚠️ **Important:** Paste the full file exactly as-is.  
+        Do not edit, truncate, or add extra text around the JSON.
 
         ✅ If valid, automation will open a **Pull Request for approval**.  
         🔒 Your report becomes public in the database **only after that PR is merged**.
@@ -34,7 +37,7 @@ body:
     id: json_content
     attributes:
       label: JSON Data
-      description: Paste the **entire** content of `almalinux_me_report.json`.
+      description: Paste the **entire** content of `almalinux_me_report.json` with no extra text before/after.
       placeholder: |
         {
           "report_id": "7e66c449",
@@ -44,6 +47,13 @@ body:
       render: json
     validations:
       required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        **Troubleshooting**
+        - If the JSON box highlights in red, you may have missing commas or extra text.
+        - Re-run the script and paste the full file again.
 
   - type: checkboxes
     id: consent

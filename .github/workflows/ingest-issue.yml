@@ -1,0 +1,49 @@
+name: Ingest Hardware Report Issue
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  ingest:
+    if: contains(github.event.issue.labels.*.name, 'hardware-report') && contains(github.event.issue.labels.*.name, 'approved')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Build report files from issue
+        run: python3 scripts/issue-to-report.py
+
+      - name: Create pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Add hardware report"
+          title: "Add hardware report from issue #${{ github.event.issue.number }}"
+          body: "Generated from approved issue #${{ github.event.issue.number }}."
+          branch: "report/issue-${{ github.event.issue.number }}"
+          labels: "hardware-report"
+
+      - name: Comment on issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.payload.issue.number;
+            const prUrl = `${{ steps.cpr.outputs.pull-request-url }}`;
+            const body = `✅ Report accepted. A PR has been opened: ${prUrl}\n\nIf everything looks good, a maintainer will merge it.`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body
+            });

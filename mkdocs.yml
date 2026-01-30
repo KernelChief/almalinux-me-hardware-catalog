@@ -1,0 +1,10 @@
+site_name: AlmaLinux M&E Hardware Catalog
+site_description: Community hardware survey results for AlmaLinux M&E workflows.
+docs_dir: docs
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - awesome-nav

@@ -23,11 +23,36 @@
 
 set -euo pipefail
 
-VERSION="1.2"
-OUTPUT_FILE="almalinux_me_report.json"
+VERSION="1.3"
+OUTPUT_FILE_JSON="almalinux_me_report.json"
 
-REPORT_ID="$(echo "${HOSTNAME:-unknown}-$(date +%s)-$RANDOM" \
-  | md5sum | awk '{print $1}' | head -c 8)"
+if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+  REPORT_ID_FILE_DEFAULT="$XDG_CONFIG_HOME/almalinux-me-hardware-survey/report_id"
+else
+  REPORT_ID_FILE_DEFAULT="${HOME:-/tmp}/.config/almalinux-me-hardware-survey/report_id"
+fi
+REPORT_ID_FILE="${REPORT_ID_FILE:-$REPORT_ID_FILE_DEFAULT}"
+
+persist_report_id() {
+  local target="$1"
+  local dir
+  dir="$(dirname "$target")"
+  if mkdir -p "$dir" 2>/dev/null; then
+    (umask 077 && printf "%s" "$REPORT_ID" > "$target") 2>/dev/null || return 1
+    return 0
+  fi
+  return 1
+}
+
+if [ -f "$REPORT_ID_FILE" ]; then
+  REPORT_ID="$(tr -d '\n' < "$REPORT_ID_FILE")"
+else
+  REPORT_ID="$(echo "$(date +%s%N)-$RANDOM-$$" | md5sum | awk '{print $1}' | head -c 8)"
+  if ! persist_report_id "$REPORT_ID_FILE"; then
+    REPORT_ID_FILE="$PWD/.almalinux-me-hardware-survey-report-id"
+    persist_report_id "$REPORT_ID_FILE" || true
+  fi
+fi
 
 # ==============================================================
 # Helpers (shared)
@@ -61,6 +86,7 @@ echo "======================================================="
 echo " AlmaLinux M&E Hardware Survey (Quick / Safe)"
 echo "======================================================="
 echo "Report ID: $REPORT_ID"
+echo "Report ID file: $REPORT_ID_FILE"
 echo
 
 # ---- dependency check (survey only) ----
@@ -152,7 +178,7 @@ done | paste -sd "," - || true
 )"
 
 # ---- Write JSON (always valid) ----
-cat > "$OUTPUT_FILE" <<EOF
+cat > "$OUTPUT_FILE_JSON" <<EOF
 {
   "report_id": "$REPORT_ID",
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
@@ -178,12 +204,22 @@ ${STORAGE_JSON}
 EOF
 
 echo "✅ M&E survey complete."
-echo "File written: $OUTPUT_FILE"
+echo "File written: $OUTPUT_FILE_JSON"
 echo
-echo "SUBMISSION INSTRUCTIONS:"
-echo "1. Open the Hardware Report issue form in your repo"
-echo "2. Use Report ID: $REPORT_ID"
-echo "3. Paste the content of $OUTPUT_FILE into the JSON field"
+echo "SUBMISSION INSTRUCTIONS (Manual - easy):"
+echo "1. Open the issue form:"
+echo "   https://github.com/KernelChief/almalinux-me-hardware-catalog/issues/new?template=hardware_report.yml"
+echo "2. Title the issue with your Report ID:"
+echo "   $REPORT_ID"
+echo "3. Paste the full JSON from:"
+echo "   $OUTPUT_FILE_JSON"
+if have_cmd wl-copy; then
+  echo "Tip (Wayland): cat $OUTPUT_FILE_JSON | wl-copy"
+elif have_cmd xclip; then
+  echo "Tip (X11): cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
+else
+  echo "Tip: You can view the file with: cat $OUTPUT_FILE_JSON"
+fi
 echo
 
 # ==============================================================
