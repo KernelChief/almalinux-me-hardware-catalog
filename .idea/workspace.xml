@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Updading page.">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -104,7 +103,7 @@
       <workItem from="1769699256250" duration="5813000" />
       <workItem from="1769708268777" duration="1435000" />
       <workItem from="1769732526662" duration="5276000" />
-      <workItem from="1769737875418" duration="1029000" />
+      <workItem from="1769737875418" duration="1333000" />
     </task>
     <task id="LOCAL-00001" summary="Upload all of the scripts etc.">
       <option name="closed" value="true" />
@@ -442,7 +441,39 @@
       <option name="project" value="LOCAL" />
       <updated>1769738750076</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="Updading page.">
+      <option name="closed" value="true" />
+      <created>1769738909031</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1769738909031</updated>
+    </task>
+    <task id="LOCAL-00044" summary="Updading page.">
+      <option name="closed" value="true" />
+      <created>1769738927222</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1769738927222</updated>
+    </task>
+    <task id="LOCAL-00045" summary="Updading page.">
+      <option name="closed" value="true" />
+      <created>1769738965317</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1769738965317</updated>
+    </task>
+    <task id="LOCAL-00046" summary="Updading page.">
+      <option name="closed" value="true" />
+      <created>1769739079607</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1769739079607</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

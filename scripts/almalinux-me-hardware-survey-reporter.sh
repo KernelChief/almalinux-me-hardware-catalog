@@ -27,9 +27,15 @@ VERSION="1.3"
 OUTPUT_FILE_JSON="almalinux_me_report.json"
 
 # If the script is piped (curl | bash), stdin is not a TTY.
-# Reopen stdin from the controlling terminal so prompts work.
-if [ ! -t 0 ] && [ -r /dev/tty ]; then
-  exec </dev/tty
+# Use /dev/tty for prompts so interactive questions still work.
+PROMPT_IN=0
+PROMPT_OUT=1
+if [ ! -t 0 ]; then
+  if [ -r /dev/tty ] && [ -w /dev/tty ]; then
+    exec 3<>/dev/tty
+    PROMPT_IN=3
+    PROMPT_OUT=3
+  fi
 fi
 
 if [ -n "${XDG_CONFIG_HOME:-}" ]; then
@@ -81,10 +87,11 @@ PY
 prompt_from_tty() {
   local prompt="$1"
   local ans=""
-  if [ -t 0 ]; then
-    read -r -p "$prompt" ans
-  elif [ -r /dev/tty ]; then
-    read -r -p "$prompt" ans < /dev/tty
+  if [ "$PROMPT_OUT" -ne 1 ] || [ -t 0 ]; then
+    printf "%s" "$prompt" >&$PROMPT_OUT
+    if ! read -r ans <&$PROMPT_IN; then
+      ans=""
+    fi
   fi
   printf "%s" "$ans"
 }
