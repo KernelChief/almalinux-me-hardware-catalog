@@ -26,6 +26,12 @@ set -euo pipefail
 VERSION="1.3"
 OUTPUT_FILE_JSON="almalinux_me_report.json"
 
+# If the script is piped (curl | bash), stdin is not a TTY.
+# Reopen stdin from the controlling terminal so prompts work.
+if [ ! -t 0 ] && [ -r /dev/tty ]; then
+  exec </dev/tty
+fi
+
 if [ -n "${XDG_CONFIG_HOME:-}" ]; then
   REPORT_ID_FILE_DEFAULT="$XDG_CONFIG_HOME/almalinux-me-hardware-survey/report_id"
 else
