@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Updading page." />
+    <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Updading page.">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -101,7 +104,7 @@
       <workItem from="1769699256250" duration="5813000" />
       <workItem from="1769708268777" duration="1435000" />
       <workItem from="1769732526662" duration="5276000" />
-      <workItem from="1769737875418" duration="710000" />
+      <workItem from="1769737875418" duration="1029000" />
     </task>
     <task id="LOCAL-00001" summary="Upload all of the scripts etc.">
       <option name="closed" value="true" />
@@ -423,7 +426,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769738583919</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="Updading page.">
+      <option name="closed" value="true" />
+      <created>1769738594753</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1769738594753</updated>
+    </task>
+    <task id="LOCAL-00042" summary="Updading page.">
+      <option name="closed" value="true" />
+      <created>1769738750076</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1769738750076</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

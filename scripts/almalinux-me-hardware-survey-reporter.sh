@@ -72,9 +72,20 @@ print(json.dumps(sys.argv[1])[1:-1])
 PY
 }
 
+prompt_from_tty() {
+  local prompt="$1"
+  local ans=""
+  if [ -t 0 ]; then
+    read -r -p "$prompt" ans
+  elif [ -r /dev/tty ]; then
+    read -r -p "$prompt" ans < /dev/tty
+  fi
+  printf "%s" "$ans"
+}
+
 prompt_yes_no() {
   local ans
-  read -r -p "$1 [y/N]: " ans
+  ans="$(prompt_from_tty "$1 [y/N]: ")"
   [[ "${ans,,}" =~ ^y(es)?$ ]]
 }
 
@@ -112,7 +123,7 @@ if [ "$missing" -eq 1 ]; then
   exit 1
 fi
 
-read -r -p "Any notes (bugs, performance, 'all good')?: " USER_NOTES
+USER_NOTES="$(prompt_from_tty "Any notes (bugs, performance, 'all good')?: ")"
 echo
 
 # ---- OS ----

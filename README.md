@@ -2,6 +2,8 @@
 
 A fast, friendly way to share **hardware compatibility reports** for AlmaLinux M&E workflows. Your report helps the community identify which workstations and parts are reliable for VFX, Animation, and Video Production.
 
+Live catalog: https://kernelchief.github.io/almalinux-me-hardware-catalog/
+
 ---
 
 ## 🛡️ Privacy & Transparency
