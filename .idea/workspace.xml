@@ -4,10 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Changed script to prompt for the certification SIG script to be optional after our basic script.">
-      <change beforePath="$PROJECT_DIR$/.github/ISSUE_TEMPLATE/hardware_report.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/ISSUE_TEMPLATE/hardware_report.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Fixed workflow issue.">
+      <change beforePath="$PROJECT_DIR$/.almalinux-me-hardware-survey-report-id" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/almalinux_me_report.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/almalinux_me_report.md" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/almalinux_me_report.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +107,7 @@
       <workItem from="1769698911141" duration="325000" />
       <workItem from="1769699256250" duration="5813000" />
       <workItem from="1769708268777" duration="1435000" />
-      <workItem from="1769732526662" duration="2814000" />
+      <workItem from="1769732526662" duration="4224000" />
     </task>
     <task id="LOCAL-00001" summary="Upload all of the scripts etc.">
       <option name="closed" value="true" />
@@ -363,7 +365,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769709084547</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="Changed whole script and way of actions / page is working (full rethink)">
+      <option name="closed" value="true" />
+      <created>1769735367556</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1769735367556</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Fixed workflow issue.">
+      <option name="closed" value="true" />
+      <created>1769735754311</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1769735754311</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -416,6 +434,8 @@
     <MESSAGE value="Tweaked text." />
     <MESSAGE value="Major make over of file actions / runners." />
     <MESSAGE value="Changed script to prompt for the certification SIG script to be optional after our basic script." />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed script to prompt for the certification SIG script to be optional after our basic script." />
+    <MESSAGE value="Changed whole script and way of actions / page is working (full rethink)" />
+    <MESSAGE value="Fixed workflow issue." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed workflow issue." />
   </component>
 </project>

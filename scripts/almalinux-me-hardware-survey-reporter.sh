@@ -241,6 +241,14 @@ echo "https://github.com/AlmaLinux/Hardware-Certification-Suite"
 echo
 
 if ! prompt_yes_no "Run Certification SIG benchmarks now"; then
+  if prompt_yes_no "Clean up and remove the generated JSON file"; then
+    rm -f "$OUTPUT_FILE_JSON"
+    echo "Removed: $OUTPUT_FILE_JSON"
+    if [ -f "$REPORT_ID_FILE" ]; then
+      rm -f "$REPORT_ID_FILE"
+      echo "Removed: $REPORT_ID_FILE"
+    fi
+  fi
   echo "Certification skipped. Exiting."
   exit 0
 fi
