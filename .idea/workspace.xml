@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Updading page.">
-      <change beforePath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" afterDir="false" />
-    </list>
+    <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Testing phase. (Debug)" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -103,23 +101,7 @@
       <workItem from="1769699256250" duration="5813000" />
       <workItem from="1769708268777" duration="1435000" />
       <workItem from="1769732526662" duration="5276000" />
-      <workItem from="1769737875418" duration="1655000" />
-    </task>
-    <task id="LOCAL-00001" summary="Upload all of the scripts etc.">
-      <option name="closed" value="true" />
-      <created>1769588382079</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1769588382079</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Updated directories setup.">
-      <option name="closed" value="true" />
-      <created>1769588528479</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1769588528479</updated>
+      <workItem from="1769737875418" duration="1918000" />
     </task>
     <task id="LOCAL-00003" summary="updated workflow report.">
       <option name="closed" value="true" />
@@ -497,7 +479,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769739360056</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="Testing phase. (Debug)">
+      <option name="closed" value="true" />
+      <created>1769739614162</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1769739614163</updated>
+    </task>
+    <task id="LOCAL-00051" summary="Testing phase. (Debug)">
+      <option name="closed" value="true" />
+      <created>1769739624005</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1769739624005</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -555,6 +553,7 @@
     <MESSAGE value="Deleted test." />
     <MESSAGE value="Updated workflow" />
     <MESSAGE value="Updading page." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updading page." />
+    <MESSAGE value="Testing phase. (Debug)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Testing phase. (Debug)" />
   </component>
 </project>

@@ -28,7 +28,7 @@ OUTPUT_FILE_JSON="almalinux_me_report.json"
 
 # If running via curl | bash, stdin is the script itself.
 # Re-exec from a temp file so we can read prompts from /dev/tty.
-if [ -z "${ALMA_SURVEY_NO_REEXEC:-}" ] && [ ! -t 0 ]; then
+if [ -z "${ALMA_SURVEY_NO_REEXEC:-}" ] && [ ! -t 0 ] && [ -t 1 ]; then
   if [ -r /dev/tty ] && [ -w /dev/tty ]; then
     tmp_script="$(mktemp -t almalinux-me-hardware-survey.XXXXXX)"
     cat > "$tmp_script"
@@ -42,12 +42,11 @@ fi
 # Use /dev/tty for prompts so interactive questions still work.
 PROMPT_IN=0
 PROMPT_OUT=1
-if [ ! -t 0 ]; then
-  if [ -r /dev/tty ] && [ -w /dev/tty ]; then
-    if exec 3<>/dev/tty; then
-      PROMPT_IN=3
-      PROMPT_OUT=3
-    fi
+# Prefer /dev/tty for prompts when available so we always see them.
+if [ -r /dev/tty ] && [ -w /dev/tty ] && { [ -t 0 ] || [ -t 1 ]; }; then
+  if exec 3<>/dev/tty; then
+    PROMPT_IN=3
+    PROMPT_OUT=3
   fi
 fi
 
@@ -100,7 +99,8 @@ PY
 prompt_from_tty() {
   local prompt="$1"
   local ans=""
-  if [ "$PROMPT_OUT" -ne 1 ] || [ -t 0 ]; then
+  # Only prompt when we can write to a terminal.
+  if [ "$PROMPT_OUT" -ne 1 ] || [ -t 1 ] || [ -t 0 ]; then
     printf "%s" "$prompt" >&$PROMPT_OUT
     if ! read -r ans <&$PROMPT_IN; then
       ans=""
@@ -252,10 +252,15 @@ echo "3. Paste the full JSON from:"
 echo "   $OUTPUT_FILE_JSON"
 if have_cmd wl-copy; then
   echo "Tip (Wayland): cat $OUTPUT_FILE_JSON | wl-copy"
-elif have_cmd xclip; then
-  echo "Tip (X11): cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
 else
-  echo "Tip: You can view the file with: cat $OUTPUT_FILE_JSON"
+  echo "Tip (Wayland): install wl-clipboard, then: cat $OUTPUT_FILE_JSON | wl-copy"
+fi
+if have_cmd xclip; then
+  echo "Tip (X11): cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
+elif have_cmd xsel; then
+  echo "Tip (X11): cat $OUTPUT_FILE_JSON | xsel --clipboard --input"
+else
+  echo "Tip (X11): install xclip or xsel, then: cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
 fi
 echo
 
@@ -278,14 +283,7 @@ echo "https://github.com/AlmaLinux/Hardware-Certification-Suite"
 echo
 
 if ! prompt_yes_no "Run Certification SIG benchmarks now"; then
-  if prompt_yes_no "Clean up and remove the generated JSON file"; then
-    rm -f "$OUTPUT_FILE_JSON"
-    echo "Removed: $OUTPUT_FILE_JSON"
-    if [ -f "$REPORT_ID_FILE" ]; then
-      rm -f "$REPORT_ID_FILE"
-      echo "Removed: $REPORT_ID_FILE"
-    fi
-  fi
+  echo "Please note: we highly suggest deleting both the script and the JSON file manually after you submit."
   echo "Certification skipped. Exiting."
   exit 0
 fi
