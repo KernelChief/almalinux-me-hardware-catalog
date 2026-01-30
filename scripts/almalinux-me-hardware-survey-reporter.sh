@@ -32,9 +32,10 @@ PROMPT_IN=0
 PROMPT_OUT=1
 if [ ! -t 0 ]; then
   if [ -r /dev/tty ] && [ -w /dev/tty ]; then
-    exec 3<>/dev/tty
-    PROMPT_IN=3
-    PROMPT_OUT=3
+    if exec 3<>/dev/tty; then
+      PROMPT_IN=3
+      PROMPT_OUT=3
+    fi
   fi
 fi
 
