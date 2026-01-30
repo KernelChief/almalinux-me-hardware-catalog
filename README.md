@@ -31,12 +31,23 @@ The script checks for required commands and will tell you what to install if nee
 
 Run the script with this one-liner:
 
-`curl -sSL https://raw.githubusercontent.com/KernelChief/almalinux-me-hardware-catalog/main/scripts/almalinux-me-hardware-survey-reporter.sh | bash`
+```bash
+curl -sSL https://raw.githubusercontent.com/KernelChief/almalinux-me-hardware-catalog/main/scripts/almalinux-me-hardware-survey-reporter.sh | bash
+```
 
 **Or step-by-step:**
-1. **Download:** `curl -O https://raw.githubusercontent.com/KernelChief/almalinux-me-hardware-catalog/main/scripts/almalinux-me-hardware-survey-reporter.sh`
-2. **Make executable:** `chmod +x almalinux-me-hardware-survey-reporter.sh`
-3. **Run:** `./almalinux-me-hardware-survey-reporter.sh`
+1. **Download:**
+```bash
+curl -sSL "https://raw.githubusercontent.com/KernelChief/almalinux-me-hardware-catalog/main/scripts/almalinux-me-hardware-survey-reporter.sh?$(date +%s)" | bash
+```
+2. **Make executable:**
+```bash
+chmod +x almalinux-me-hardware-survey-reporter.sh
+```
+3. **Run:**
+```bash
+./almalinux-me-hardware-survey-reporter.sh
+```
 
 Security note: the one-liner runs a remote script immediately. If you prefer, download it first and review the file before running.
 
@@ -55,7 +66,9 @@ Once the script finishes, it will generate:
 3. Paste the full contents of `almalinux_me_report.json` into the JSON field.
 
 Tip: You can view the JSON with:
-`cat almalinux_me_report.json`
+```bash
+cat almalinux_me_report.json
+```
 
 ## ❓ FAQ
 

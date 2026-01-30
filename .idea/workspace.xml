@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5568b955-0eb7-4524-99b0-b582271eb7e7" name="Changes" comment="Cleaned up test reports.">
-      <change beforePath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/almalinux-me-hardware-survey-reporter.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,23 +105,7 @@
       <workItem from="1769708268777" duration="1435000" />
       <workItem from="1769732526662" duration="5276000" />
       <workItem from="1769737875418" duration="1918000" />
-      <workItem from="1769765623458" duration="1224000" />
-    </task>
-    <task id="LOCAL-00008" summary="updated workflow report.">
-      <option name="closed" value="true" />
-      <created>1769590669064</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1769590669064</updated>
-    </task>
-    <task id="LOCAL-00009" summary="Added option to attach file by drag and drop.">
-      <option name="closed" value="true" />
-      <created>1769698958188</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1769698958188</updated>
+      <workItem from="1769765623458" duration="1700000" />
     </task>
     <task id="LOCAL-00010" summary="Fixed yaml syntax">
       <option name="closed" value="true" />
@@ -498,7 +483,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769766846533</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="Cleaned up test reports.">
+      <option name="closed" value="true" />
+      <created>1769767067283</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1769767067283</updated>
+    </task>
+    <task id="LOCAL-00058" summary="Cleaned up test reports.">
+      <option name="closed" value="true" />
+      <created>1769767096986</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1769767096986</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
