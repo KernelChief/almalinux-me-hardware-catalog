@@ -1,0 +1,50 @@
+{
+  "graphics": [
+    {
+      "device": "NVIDIA Corporation GB202 [GeForce RTX 5090] (rev a1)",
+      "driver": "nvidia"
+    }
+  ],
+  "memory": {
+    "modules": [
+      {
+        "configured_speed": "",
+        "manufacturer": "",
+        "size": "16 GB",
+        "speed": ""
+      },
+      {
+        "configured_speed": "2400 MT/s",
+        "manufacturer": "Kingston",
+        "size": "16 GB",
+        "speed": "Memory Speed:"
+      },
+      {
+        "configured_speed": "2400 MT/s",
+        "manufacturer": "Kingston",
+        "size": "16 GB",
+        "speed": "Memory Speed:"
+      },
+      {
+        "configured_speed": "2400 MT/s",
+        "manufacturer": "Kingston",
+        "size": "16 GB",
+        "speed": "Memory Speed:"
+      }
+    ],
+    "total_gb": "62"
+  },
+  "processor": {
+    "cores": "8",
+    "model": "AMD Ryzen 3 4100 4-Core Processor"
+  },
+  "report_id": "d79d017f",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "5.14.0-611.20.1.el9_7.x86_64",
+    "os_release": "AlmaLinux 9.7 (Moss Jungle Cat)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-01-30T09:27:43Z",
+  "user_notes": "RTX 5090 requires Open version of Nvidia driver AND requires specific versions of Redshift, Houdini etc. to be compatible."
+}
