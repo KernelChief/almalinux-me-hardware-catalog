@@ -11,6 +11,6 @@ Welcome! This site lists community-submitted hardware reports for AlmaLinux M&E 
 Use the site search or your browser's find (Ctrl+F) to locate hardware models quickly.
 
 <!-- REPORTS_TABLE_START -->
-| Report ID | Timestamp (UTC) | System | Processor | Memory (GB) |
-| --- | --- | --- | --- | --- |
+| Report ID | Timestamp (UTC) | System | Processor | Memory (GB) | GPU |
+| --- | --- | --- | --- | --- | --- |
 <!-- REPORTS_TABLE_END -->

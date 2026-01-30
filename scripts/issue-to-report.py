@@ -112,6 +112,7 @@ def build_report_rows(reports_dir):
         system = data.get("system", {}) or {}
         processor = data.get("processor", {}) or {}
         memory = data.get("memory", {}) or {}
+        graphics = data.get("graphics", []) or []
 
         vendor = system.get("vendor") or system.get("manufacturer") or system.get("brand") or ""
         model = system.get("model") or system.get("product") or system.get("name") or ""
@@ -119,6 +120,14 @@ def build_report_rows(reports_dir):
 
         processor_label = str(processor.get("model") or processor.get("name") or "").strip()
         memory_label = str(memory.get("total_gb") or memory.get("total") or "").strip()
+        gpu_names = []
+        for gpu in graphics:
+            if not isinstance(gpu, dict):
+                continue
+            name = str(gpu.get("device") or "").strip()
+            if name:
+                gpu_names.append(name)
+        gpu_label = ", ".join(gpu_names)
 
         timestamp = data.get("timestamp", "")
         timestamp_dt = parse_timestamp(timestamp)
@@ -131,6 +140,7 @@ def build_report_rows(reports_dir):
                 "system": system_label,
                 "processor": processor_label,
                 "memory": memory_label,
+                "gpu": gpu_label,
             }
         )
 
@@ -141,20 +151,23 @@ def build_report_rows(reports_dir):
     return rows
 
 
-def render_reports_table(rows, link_prefix):
+def render_reports_table(rows, link_prefix, limit=None):
     if not rows:
         return "_No reports yet. Submitted reports will appear here after approval._"
+    if limit is not None:
+        rows = rows[:limit]
     lines = []
-    lines.append("| Report ID | Timestamp (UTC) | System | Processor | Memory (GB) |")
-    lines.append("| --- | --- | --- | --- | --- |")
+    lines.append("| Report ID | Timestamp (UTC) | System | Processor | Memory (GB) | GPU |")
+    lines.append("| --- | --- | --- | --- | --- | --- |")
     for row in rows:
         report_id = row["report_id"]
         timestamp = row["timestamp"] or ""
         system = row["system"] or ""
         processor = row["processor"] or ""
         memory = row["memory"] or ""
+        gpu = row["gpu"] or ""
         link = f"[{report_id}]({link_prefix}{report_id}/)"
-        lines.append(f"| {link} | {timestamp} | {system} | {processor} | {memory} |")
+        lines.append(f"| {link} | {timestamp} | {system} | {processor} | {memory} | {gpu} |")
     return "\n".join(lines)
 
 
@@ -197,7 +210,7 @@ def update_marked_section(path, new_content):
 def update_results_indexes(reports_dir):
     rows = build_report_rows(reports_dir)
     results_table = render_reports_table(rows, "./")
-    index_table = render_reports_table(rows, "./results/")
+    index_table = render_reports_table(rows, "./results/", limit=5)
 
     update_marked_section(os.path.join("docs", "results", "index.md"), results_table)
     update_marked_section(os.path.join("docs", "index.md"), index_table)
