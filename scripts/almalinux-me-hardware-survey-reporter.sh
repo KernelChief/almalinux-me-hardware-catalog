@@ -24,7 +24,8 @@
 set -euo pipefail
 
 VERSION="1.3"
-OUTPUT_FILE_JSON="almalinux_me_report.json"
+# Allow override, but never allow empty.
+OUTPUT_FILE_JSON="${OUTPUT_FILE_JSON:-almalinux_me_report.json}"
 
 # If running via curl | bash, stdin is the script itself.
 # Re-exec from a temp file so we can read prompts from /dev/tty.
@@ -250,17 +251,13 @@ echo "2. Title the issue with your Report ID:"
 echo "   $REPORT_ID"
 echo "3. Paste the full JSON from:"
 echo "   $OUTPUT_FILE_JSON"
-if have_cmd wl-copy; then
-  echo "Tip (Wayland): cat $OUTPUT_FILE_JSON | wl-copy"
-else
-  echo "Tip (Wayland): install wl-clipboard, then: cat $OUTPUT_FILE_JSON | wl-copy"
-fi
+echo "Tip (Wayland): cat $OUTPUT_FILE_JSON | wl-copy"
 if have_cmd xclip; then
   echo "Tip (X11): cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
 elif have_cmd xsel; then
   echo "Tip (X11): cat $OUTPUT_FILE_JSON | xsel --clipboard --input"
 else
-  echo "Tip (X11): install xclip or xsel, then: cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
+  echo "Tip (X11): cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
 fi
 echo
 
