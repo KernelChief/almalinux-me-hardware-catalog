@@ -1,0 +1,36 @@
+{
+  "graphics": [
+    {
+      "device": "Device 1234:1111 (rev 02)",
+      "driver": "bochs-drm"
+    }
+  ],
+  "memory": {
+    "modules": [
+      {
+        "configured_speed": "",
+        "manufacturer": "",
+        "size": "4 GB",
+        "speed": ""
+      }
+    ],
+    "total_gb": "3"
+  },
+  "processor": {
+    "cores": "4",
+    "model": "QEMU Virtual CPU version 2.5+"
+  },
+  "report_id": "dc672f7e",
+  "storage_controllers": [
+    {
+      "device": "Red Hat, Inc. Virtio SCSI"
+    }
+  ],
+  "system": {
+    "kernel": "5.14.0-611.24.1.el9_7.x86_64",
+    "os_release": "AlmaLinux 9.7 (Moss Jungle Cat)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-01-30T01:06:25Z",
+  "user_notes": "good"
+}
