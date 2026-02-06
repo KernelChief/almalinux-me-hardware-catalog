@@ -1,0 +1,68 @@
+{
+  "graphics": [
+    {
+      "device": "NVIDIA Corporation GA106 [GeForce RTX 3060] (rev a1)",
+      "driver": "nvidia"
+    }
+  ],
+  "memory": {
+    "modules": [
+      {
+        "configured_speed": "",
+        "manufacturer": "",
+        "size": "32 GB",
+        "speed": ""
+      },
+      {
+        "configured_speed": "3200 MT/s",
+        "manufacturer": "Unknown",
+        "size": "Size: 32",
+        "speed": "Memory Speed:"
+      },
+      {
+        "configured_speed": "",
+        "manufacturer": "",
+        "size": "32 GB",
+        "speed": ""
+      },
+      {
+        "configured_speed": "3200 MT/s",
+        "manufacturer": "Unknown",
+        "size": "Size: 32",
+        "speed": "Memory Speed:"
+      },
+      {
+        "configured_speed": "",
+        "manufacturer": "",
+        "size": "32 GB",
+        "speed": ""
+      },
+      {
+        "configured_speed": "3200 MT/s",
+        "manufacturer": "Unknown",
+        "size": "Size: 32",
+        "speed": "Memory Speed:"
+      },
+      {
+        "configured_speed": "",
+        "manufacturer": "",
+        "size": "32 GB",
+        "speed": ""
+      }
+    ],
+    "total_gb": "125"
+  },
+  "processor": {
+    "cores": "64",
+    "model": "AMD Ryzen Threadripper 3970X 32-Core Processor"
+  },
+  "report_id": "0bc8b9bc",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "5.14.0-611.5.1.el9_7.x86_64",
+    "os_release": "AlmaLinux 9.7 (Moss Jungle Cat)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-01-30T18:22:32Z",
+  "user_notes": "all good"
+}
