@@ -24,6 +24,14 @@
 set -euo pipefail
 
 VERSION="1.3"
+
+# ── Colors ────────────────────────────────────────────────────────────────────
+GREEN="\e[32m"; BLUE="\e[34m"; PURPLE="\e[35m"; YELLOW="\e[33m"; CYAN="\e[36m"
+BOLD="\e[1m"; RESET="\e[0m"
+step_ok()  { echo -e "  ${GREEN}✔${RESET} $1"; }
+step_run() { echo -ne "  ${CYAN}…${RESET} $1"; }
+# TODO: Replace with official AlmaLinux M&E SIG email once assigned
+SURVEY_EMAIL="tristan.theroux@pm.me"
 # Allow override, but never allow empty.
 OUTPUT_FILE_JSON="${OUTPUT_FILE_JSON:-almalinux_me_report.json}"
 
@@ -72,7 +80,7 @@ persist_report_id() {
 if [ -f "$REPORT_ID_FILE" ]; then
   REPORT_ID="$(tr -d '\n' < "$REPORT_ID_FILE")"
 else
-  REPORT_ID="$(echo "$(date +%s%N)-$RANDOM-$$" | md5sum | awk '{print $1}' | head -c 8)"
+  REPORT_ID="$(echo "$(date +%s%N)-$RANDOM-$$" | md5sum | awk '{print $1}' | head -c 12)"
   if ! persist_report_id "$REPORT_ID_FILE"; then
     REPORT_ID_FILE="$PWD/.almalinux-me-hardware-survey-report-id"
     persist_report_id "$REPORT_ID_FILE" || true
@@ -120,33 +128,32 @@ prompt_yes_no() {
 # SECTION 1 — M&E QUICK HARDWARE SURVEY
 # ==============================================================
 
-echo "======================================================="
-echo " AlmaLinux M&E Hardware Survey (Quick / Safe)"
-echo "======================================================="
-echo "Report ID: $REPORT_ID"
-echo "Report ID file: $REPORT_ID_FILE"
-echo
+echo ""
+echo -e "${BLUE}${BOLD}  AlmaLinux M&E SIG — Hardware Survey v${VERSION}${RESET}"
+echo -e "${BLUE}  ──────────────────────────────────────────────${RESET}"
+echo -e "  Privacy-first. No network calls, no hostnames, no IPs."
+echo -e "  Report ID : ${PURPLE}${REPORT_ID}${RESET}"
+echo -e "  ID file   : ${REPORT_ID_FILE}"
+echo ""
 
 # ---- dependency check (survey only) ----
 missing=0
 for cmd in lspci free uname nproc python3 awk grep cut tr xargs md5sum; do
   if ! have_cmd "$cmd"; then
-    echo "❌ Missing required command: $cmd"
+    echo -e "  ${YELLOW}❌ Missing required command: $cmd${RESET}"
     missing=1
   fi
 done
 
-# dmidecode is optional now (we'll still produce JSON without module list)
 if ! have_cmd dmidecode; then
-  echo "⚠️ dmidecode not found: memory module details will be skipped."
+  echo -e "  ${YELLOW}⚠  dmidecode not found: memory module details will be skipped.${RESET}"
 fi
 
 if [ "$missing" -eq 1 ]; then
-  echo
-  echo "Install on Alma/RHEL with:"
-  echo "  sudo dnf install -y pciutils python3"
-  echo "Optional (for memory module details):"
-  echo "  sudo dnf install -y dmidecode"
+  echo ""
+  echo -e "  ${YELLOW}Install on Alma/RHEL with:${RESET}"
+  echo -e "  ${YELLOW}  sudo dnf install -y pciutils python3${RESET}"
+  echo -e "  ${YELLOW}Optional: sudo dnf install -y dmidecode${RESET}"
   exit 1
 fi
 
@@ -154,18 +161,24 @@ USER_NOTES="$(prompt_from_tty "Any notes (bugs, performance, 'all good')?: ")"
 echo
 
 # ---- OS ----
+step_run "Collecting OS info...          "
 if [ -r /etc/os-release ]; then
   OS_NAME="$(grep -E '^PRETTY_NAME=' /etc/os-release | cut -d= -f2- | tr -d '"')"
 else
   OS_NAME="Unknown"
 fi
+step_ok ""
 
 # ---- CPU ----
+step_run "Collecting CPU info...         "
 CPU_MODEL="$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2- | xargs || true)"
 CPU_CORES="$(nproc)"
+step_ok ""
 
 # ---- Memory totals ----
+step_run "Collecting RAM info...         "
 MEM_TOTAL_GB="$(free -g | awk '/^Mem:/{print $2}' || echo "")"
+step_ok ""
 
 # ---- Memory modules (optional; no sudo required, will attempt sudo if allowed) ----
 MEM_MODULES=""
@@ -198,6 +211,7 @@ if have_cmd dmidecode; then
 fi
 
 # ---- GPU ----
+step_run "Collecting GPU info...         "
 GPU_JSON=""
 while read -r line; do
   SLOT="${line%% *}"
@@ -206,14 +220,19 @@ while read -r line; do
   [ -n "$GPU_JSON" ] && GPU_JSON+=","
   GPU_JSON+=" {\"device\":\"$(json_escape "$NAME")\",\"driver\":\"$(json_escape "$DRIVER")\"}"
 done < <(lspci 2>/dev/null | grep -E "VGA|3D|Display" || true)
+step_ok ""
 
 # ---- Storage ----
+step_run "Collecting storage info...     "
 STORAGE_JSON="$(
 lspci 2>/dev/null | grep -i storage | while read -r l; do
   DEV="$(echo "$l" | cut -d: -f3- | xargs)"
   printf "    {\"device\":\"%s\"}\n" "$(json_escape "$DEV")"
 done | paste -sd "," - || true
 )"
+step_ok ""
+step_run "Writing report...              "
+
 
 # ---- Output file safety (in case OUTPUT_FILE_JSON is empty) ----
 if [ -z "$OUTPUT_FILE_JSON" ]; then
@@ -246,43 +265,71 @@ ${STORAGE_JSON}
 }
 EOF
 
-echo "✅ M&E survey complete."
-echo "File written: $OUTPUT_FILE_JSON"
-echo
-echo "SUBMISSION INSTRUCTIONS (Manual - easy):"
-echo "1. Open the issue form:"
-echo "   https://github.com/KernelChief/almalinux-me-hardware-catalog/issues/new?template=hardware_report.yml"
-echo "2. Title the issue with your Report ID:"
-echo "   $REPORT_ID"
-echo "3. Paste the full JSON from:"
-echo "   $OUTPUT_FILE_JSON"
-echo "Tip (Wayland): cat $OUTPUT_FILE_JSON | wl-copy"
-if have_cmd xclip; then
-  echo "Tip (X11): cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
+step_ok ""
+
+# ── Preview box ───────────────────────────────────────────────────────────────
+echo ""
+echo -e "${BLUE}  ┌──────────────────────────────────────────────┐${RESET}"
+echo -e "${BLUE}  │${RESET}  ${BOLD}📋 Report Preview${RESET}"
+echo -e "${BLUE}  │${RESET}"
+echo -e "${BLUE}  │${RESET}  Report ID : ${PURPLE}${REPORT_ID}${RESET}"
+echo -e "${BLUE}  │${RESET}  OS        : ${OS_NAME}"
+echo -e "${BLUE}  │${RESET}  CPU       : ${CPU_MODEL} (${CPU_CORES} cores)"
+echo -e "${BLUE}  │${RESET}  RAM       : ${MEM_TOTAL_GB} GB"
+echo -e "${BLUE}  │${RESET}  File      : ${OUTPUT_FILE_JSON}"
+echo -e "${BLUE}  └──────────────────────────────────────────────┘${RESET}"
+echo ""
+
+# ── Auto-copy JSON to clipboard ───────────────────────────────────────────────
+if have_cmd wl-copy; then
+  wl-copy < "$OUTPUT_FILE_JSON"
+  echo -e "  ${GREEN}✔ JSON copied to clipboard (Wayland)${RESET}"
+elif have_cmd xclip; then
+  xclip -selection clipboard < "$OUTPUT_FILE_JSON"
+  echo -e "  ${GREEN}✔ JSON copied to clipboard (X11/xclip)${RESET}"
 elif have_cmd xsel; then
-  echo "Tip (X11): cat $OUTPUT_FILE_JSON | xsel --clipboard --input"
+  xsel --clipboard --input < "$OUTPUT_FILE_JSON"
+  echo -e "  ${GREEN}✔ JSON copied to clipboard (X11/xsel)${RESET}"
 else
-  echo "Tip (X11): cat $OUTPUT_FILE_JSON | xclip -selection clipboard"
+  echo -e "  ${YELLOW}⚠  Clipboard tool not found — paste manually from: ${OUTPUT_FILE_JSON}${RESET}"
 fi
-echo
+
+# ── Open submission form ──────────────────────────────────────────────────────
+ISSUE_URL="https://github.com/KernelChief/almalinux-me-hardware-catalog/issues/new?template=hardware_report.yml"
+echo ""
+echo -e "  ${GREEN}${BOLD}Opening submission form in your browser...${RESET}"
+xdg-open "$ISSUE_URL" 2>/dev/null || true
+echo ""
+echo -e "${BLUE}  ┌─ Next steps ──────────────────────────────────┐${RESET}"
+echo -e "${BLUE}  │${RESET}  1. Enter Report ID : ${PURPLE}${REPORT_ID}${RESET}"
+echo -e "${BLUE}  │${RESET}  2. Paste JSON (already in your clipboard)"
+echo -e "${BLUE}  │${RESET}  3. Submit — a maintainer will review & merge"
+echo -e "${BLUE}  └───────────────────────────────────────────────┘${RESET}"
+echo ""
+
+# ── Non-GitHub fallback ───────────────────────────────────────────────────────
+echo -e "${YELLOW}  ──────────────────────────────────────────────────${RESET}"
+echo -e "${YELLOW}  No GitHub account? Submit by email instead:${RESET}"
+echo -e "  ${YELLOW}mailto:${SURVEY_EMAIL}?subject=M%26E%20Hardware%20Report%20%5B${REPORT_ID}%5D${RESET}"
+echo -e "  ${YELLOW}(Attach ${OUTPUT_FILE_JSON} to the email)${RESET}"
+echo ""
 
 # ==============================================================
 # SECTION 2 — CERTIFICATION SIG (OPTIONAL / DESTRUCTIVE)
 # ==============================================================
 
-echo "======================================================="
-echo " AlmaLinux Hardware Certification (OPTIONAL)"
-echo "======================================================="
-echo "⚠️  WARNING:"
-echo "This will heavily stress the system and may make it unusable"
-echo "for the duration of the benchmarks."
-echo
-echo "Results WILL be sent automatically to the AlmaLinux"
-echo "Hardware Certification SIG."
-echo
-echo "More info:"
-echo "https://github.com/AlmaLinux/Hardware-Certification-Suite"
-echo
+echo -e "${YELLOW}${BOLD}  ══════════════════════════════════════════════════${RESET}"
+echo -e "${YELLOW}${BOLD}   AlmaLinux Hardware Certification (OPTIONAL)${RESET}"
+echo -e "${YELLOW}${BOLD}  ══════════════════════════════════════════════════${RESET}"
+echo -e "  ${YELLOW}⚠  WARNING: Heavy system load — machine may be${RESET}"
+echo -e "  ${YELLOW}   unusable for the duration of the benchmarks.${RESET}"
+echo ""
+echo -e "  Results WILL be sent automatically to the AlmaLinux"
+echo -e "  Hardware Certification SIG."
+echo ""
+echo -e "  More info: https://github.com/AlmaLinux/Hardware-Certification-Suite"
+echo -e "  M&E SIG:   https://wiki.almalinux.org/sigs/MediaAndEntertainmentSIG.html"
+echo ""
 
 if ! prompt_yes_no "Run Certification SIG benchmarks now"; then
   echo "Please note: we highly suggest deleting both the script and the JSON file manually after you submit."
