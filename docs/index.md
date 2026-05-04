@@ -33,7 +33,7 @@ hide:
     <div class="hw-step-num">01 — Run</div>
     <div class="hw-step-title">One command</div>
     <div class="hw-step-desc">Runs locally on your AlmaLinux workstation. Collects hardware info, writes a JSON file, and copies it to your clipboard automatically.</div>
-    <code style="font-size:0.72rem;color:var(--hw-cyan);background:var(--hw-card);padding:6px 10px;border-radius:5px;display:block;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">bash &lt;(curl -sL …/reporter.sh)</code>
+    <code style="font-size:0.72rem;color:var(--hw-cyan);background:var(--hw-card);padding:6px 10px;border-radius:5px;display:block;margin-top:8px;overflow-x:auto;white-space:nowrap;user-select:all;cursor:text;">bash &lt;(curl -sL https://raw.githubusercontent.com/KernelChief/almalinux-me-hardware-catalog/main/scripts/almalinux-me-hardware-survey-reporter.sh)</code>
   </div>
   <div class="hw-step">
     <div class="hw-step-num">02 — Submit</div>
