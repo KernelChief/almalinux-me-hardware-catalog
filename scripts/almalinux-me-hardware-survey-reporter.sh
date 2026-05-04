@@ -6,19 +6,12 @@
 # GPLv3
 #
 # --------------------------------------------------------------------
-# SECTION 1: M&E QUICK HARDWARE SURVEY (SAFE / NON-DESTRUCTIVE)
+# M&E QUICK HARDWARE SURVEY (SAFE / NON-DESTRUCTIVE)
 # --------------------------------------------------------------------
 # - DOES NOT send any data over the network
 # - Collects basic hardware + OS details
 # - Writes a local JSON file
 # - User manually submits JSON to GitHub
-#
-# SECTION 2: OPTIONAL CERTIFICATION SIG SCAN (DESTRUCTIVE / OPT-IN)
-# --------------------------------------------------------------------
-# - VERY HEAVY system load
-# - Uses benchmarks (Phoronix)
-# - Sends results upstream automatically
-# - Requires explicit user confirmation
 # --------------------------------------------------------------------
 
 set -euo pipefail
@@ -314,55 +307,6 @@ echo -e "  ${YELLOW}mailto:${SURVEY_EMAIL}?subject=M%26E%20Hardware%20Report%20%
 echo -e "  ${YELLOW}(Attach ${OUTPUT_FILE_JSON} to the email)${RESET}"
 echo ""
 
-# ==============================================================
-# SECTION 2 — CERTIFICATION SIG (OPTIONAL / DESTRUCTIVE)
-# ==============================================================
-
-echo -e "${YELLOW}${BOLD}  ══════════════════════════════════════════════════${RESET}"
-echo -e "${YELLOW}${BOLD}   AlmaLinux Hardware Certification (OPTIONAL)${RESET}"
-echo -e "${YELLOW}${BOLD}  ══════════════════════════════════════════════════${RESET}"
-echo -e "  ${YELLOW}⚠  WARNING: Heavy system load — machine may be${RESET}"
-echo -e "  ${YELLOW}   unusable for the duration of the benchmarks.${RESET}"
+echo -e "  ${YELLOW}Please delete both the script and the JSON file after submitting.${RESET}"
 echo ""
-echo -e "  Results WILL be sent automatically to the AlmaLinux"
-echo -e "  Hardware Certification SIG."
-echo ""
-echo -e "  More info: https://github.com/AlmaLinux/Hardware-Certification-Suite"
-echo -e "  M&E SIG:   https://wiki.almalinux.org/sigs/MediaAndEntertainmentSIG.html"
-echo ""
-
-if ! prompt_yes_no "Run Certification SIG benchmarks now"; then
-  echo "Please note: we highly suggest deleting both the script and the JSON file manually after you submit."
-  echo "Certification skipped. Exiting."
-  exit 0
-fi
-
-echo
-echo "Proceeding with Certification SIG scan..."
-echo
-
-sudo dnf install -y git-core tmux python3 python3-pip
-
-WORKDIR="$PWD"
-SUITE_DIR="$WORKDIR/Hardware-Certification-Suite"
-
-[ -d "$SUITE_DIR" ] || git clone https://github.com/AlmaLinux/Hardware-Certification-Suite.git "$SUITE_DIR"
-
-python3 -m venv venv
-# shellcheck disable=SC1091
-source venv/bin/activate
-pip install --upgrade pip ansible
-
-cd "$SUITE_DIR"
-
-SESSION="almalinux-certification-tests"
-CMD="ansible-playbook -c local -i 127.0.0.1, automated.yml --tags=phoronix"
-
-if tmux has-session -t "$SESSION" 2>/dev/null; then
-  echo "tmux session already running: $SESSION"
-  echo "Attach with: tmux attach -t $SESSION"
-else
-  tmux new-session -d -s "$SESSION" "$CMD; echo; echo 'Done. Press Enter to exit.'; read -r"
-  echo "Certification started in tmux session: $SESSION"
-  echo "Attach with: tmux attach -t $SESSION"
-fi
+exit 0
