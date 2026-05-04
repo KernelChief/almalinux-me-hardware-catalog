@@ -33,7 +33,13 @@ hide:
     <div class="hw-step-num">01 — Run</div>
     <div class="hw-step-title">One command</div>
     <div class="hw-step-desc">Runs locally on your AlmaLinux workstation. Collects hardware info, writes a JSON file, and copies it to your clipboard automatically.</div>
-    <code style="font-size:0.72rem;color:var(--hw-cyan);background:var(--hw-card);padding:6px 10px;border-radius:5px;display:block;margin-top:8px;overflow-x:auto;white-space:nowrap;user-select:all;cursor:text;">bash &lt;(curl -sL https://raw.githubusercontent.com/KernelChief/almalinux-me-hardware-catalog/main/scripts/almalinux-me-hardware-survey-reporter.sh)</code>
+    <div class="hw-cmd">
+      <code class="hw-cmd-text">bash &lt;(curl -sL https://raw.githubusercontent.com/KernelChief/almalinux-me-hardware-catalog/main/scripts/almalinux-me-hardware-survey-reporter.sh)</code>
+      <button class="hw-cmd-copy" title="Copy command" aria-label="Copy command">
+        <svg class="hw-cmd-icon-copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        <svg class="hw-cmd-icon-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+    </div>
   </div>
   <div class="hw-step">
     <div class="hw-step-num">02 — Submit</div>

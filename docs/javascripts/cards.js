@@ -143,11 +143,24 @@
     if (total) updateStats(total);
   }
 
+  /* ── Copy command buttons ────────────────────────────────────── */
+  function initCopyButtons() {
+    document.querySelectorAll('.hw-cmd-copy').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var text = btn.closest('.hw-cmd').querySelector('.hw-cmd-text').textContent;
+        navigator.clipboard.writeText(text).then(function () {
+          btn.classList.add('copied');
+          setTimeout(function () { btn.classList.remove('copied'); }, 2000);
+        });
+      });
+    });
+  }
+
   /* Support both initial load and MkDocs instant navigation */
-  document.addEventListener('DOMContentLoaded', run);
+  document.addEventListener('DOMContentLoaded', function () { run(); initCopyButtons(); });
 
   if (typeof document$ !== 'undefined') {
     /* MkDocs Material instant navigation uses RxJS document$ observable */
-    document$.subscribe(run);
+    document$.subscribe(function () { run(); initCopyButtons(); });
   }
 })();

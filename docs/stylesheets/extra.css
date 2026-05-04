@@ -496,6 +496,78 @@ body,
   line-height: 1.6;
 }
 
+/* ── Command copy block ─────────────────────────────────────────── */
+.hw-cmd {
+  display: flex;
+  align-items: center;
+  background: var(--hw-bg);
+  border: 1px solid var(--hw-border);
+  border-radius: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.hw-cmd-text {
+  flex: 1;
+  min-width: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--hw-cyan);
+  padding: 7px 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+  background: transparent;
+  cursor: text;
+  user-select: all;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hw-border-hi) transparent;
+}
+
+.hw-cmd-text::-webkit-scrollbar {
+  height: 3px;
+}
+
+.hw-cmd-text::-webkit-scrollbar-thumb {
+  background: var(--hw-border-hi);
+  border-radius: 3px;
+}
+
+.hw-cmd-copy {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--hw-border);
+  padding: 7px 10px;
+  cursor: pointer;
+  color: var(--hw-label);
+  transition: color 0.15s, background 0.15s;
+  line-height: 0;
+}
+
+.hw-cmd-copy:hover {
+  color: var(--hw-cyan);
+  background: var(--hw-cyan-dim);
+}
+
+.hw-cmd-copy.copied {
+  color: var(--hw-green);
+}
+
+.hw-cmd-icon-check {
+  display: none;
+}
+
+.hw-cmd-copy.copied .hw-cmd-icon-copy {
+  display: none;
+}
+
+.hw-cmd-copy.copied .hw-cmd-icon-check {
+  display: block;
+}
+
 .hw-step-link {
   display: inline-block;
   margin-top: 8px;
