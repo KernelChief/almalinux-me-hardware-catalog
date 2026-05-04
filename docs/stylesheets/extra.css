@@ -1,0 +1,798 @@
+/* ================================================================
+   AlmaLinux M&E Works On — Dark Hardware Theme
+   Fonts: Syne (display) + IBM Plex Mono (specs)
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap');
+
+/* ── Design tokens ─────────────────────────────────────────────── */
+:root {
+  --hw-bg:        #080c12;
+  --hw-surface:   #0e1520;
+  --hw-card:      #111c26;
+  --hw-card-hov:  #152233;
+  --hw-border:    #1c2d40;
+  --hw-border-hi: #2b4260;
+  --hw-cyan:      #00c8f0;
+  --hw-cyan-dim:  rgba(0,200,240,0.12);
+  --hw-orange:    #ff6a35;
+  --hw-orange-dim:rgba(255,106,53,0.10);
+  --hw-green:     #3afe8c;
+  --hw-green-dim: rgba(58,254,140,0.10);
+  --hw-text:      #d4dfe9;
+  --hw-muted:     #4a5e74;
+  --hw-label:     #7d95ad;
+  --hw-glow-cyan: 0 0 28px rgba(0,200,240,0.18);
+}
+
+/* Light mode tokens */
+[data-md-color-scheme="default"] {
+  --hw-bg:        #f2f5f9;
+  --hw-surface:   #ffffff;
+  --hw-card:      #ffffff;
+  --hw-card-hov:  #f7fafd;
+  --hw-border:    #dde6f0;
+  --hw-border-hi: #b8cde0;
+  --hw-cyan:      #0092b8;
+  --hw-cyan-dim:  rgba(0,146,184,0.08);
+  --hw-orange:    #d95520;
+  --hw-orange-dim:rgba(217,85,32,0.08);
+  --hw-green:     #1a9148;
+  --hw-green-dim: rgba(26,145,72,0.08);
+  --hw-text:      #182330;
+  --hw-muted:     #8a9db0;
+  --hw-label:     #5a7080;
+  --hw-glow-cyan: none;
+}
+
+/* ── Material overrides ─────────────────────────────────────────── */
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color:           var(--hw-bg);
+  --md-default-fg-color:           var(--hw-text);
+  --md-default-fg-color--light:    var(--hw-label);
+  --md-default-fg-color--lighter:  var(--hw-muted);
+  --md-default-fg-color--lightest: var(--hw-border-hi);
+  --md-code-bg-color:              var(--hw-surface);
+  --md-code-fg-color:              var(--hw-cyan);
+  --md-typeset-a-color:            var(--hw-cyan);
+  --md-primary-fg-color:           var(--hw-bg);
+  --md-primary-bg-color:           var(--hw-text);
+  --md-accent-fg-color:            var(--hw-cyan);
+  --md-typeset-table-color:        var(--hw-border);
+}
+
+[data-md-color-scheme="default"] {
+  --md-default-bg-color:           var(--hw-bg);
+  --md-default-fg-color:           var(--hw-text);
+  --md-default-fg-color--light:    var(--hw-label);
+  --md-default-fg-color--lighter:  var(--hw-muted);
+  --md-default-fg-color--lightest: var(--hw-border-hi);
+  --md-code-bg-color:              var(--hw-surface);
+  --md-code-fg-color:              var(--hw-cyan);
+  --md-typeset-a-color:            var(--hw-cyan);
+  --md-primary-fg-color:           var(--hw-bg);
+  --md-primary-bg-color:           var(--hw-text);
+  --md-accent-fg-color:            var(--hw-cyan);
+}
+
+/* ── Global typography ─────────────────────────────────────────── */
+body,
+.md-typeset {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.88rem;
+  color: var(--hw-text);
+}
+
+.md-typeset code,
+.md-typeset pre,
+.md-typeset kbd {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--hw-text);
+}
+
+.md-typeset h1 {
+  font-size: 1.9rem;
+  line-height: 1.15;
+}
+
+.md-typeset h2 {
+  font-size: 1.1rem;
+  color: var(--hw-label);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  margin-top: 2.4rem;
+  margin-bottom: 0.8rem;
+}
+
+/* Report ID in h1 as a monospace badge */
+.md-typeset h1 code {
+  font-size: 0.7em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  color: var(--hw-cyan);
+  background: var(--hw-cyan-dim);
+  border: 1px solid rgba(0,200,240,0.25);
+  padding: 0.12em 0.45em;
+  border-radius: 5px;
+  vertical-align: middle;
+}
+
+.md-typeset a {
+  color: var(--hw-cyan);
+  text-decoration: none;
+}
+
+.md-typeset a:hover {
+  color: #ffffff;
+}
+
+/* ── Header ────────────────────────────────────────────────────── */
+.md-header {
+  background: rgba(8,12,18,0.92) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--hw-border);
+  box-shadow: none !important;
+}
+
+[data-md-color-scheme="default"] .md-header {
+  background: rgba(242,245,249,0.92) !important;
+  border-bottom: 1px solid var(--hw-border);
+}
+
+.md-header__title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────── */
+.md-sidebar {
+  background: var(--hw-surface);
+}
+
+.md-sidebar--primary {
+  border-right: 1px solid var(--hw-border);
+}
+
+.md-nav {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+}
+
+.md-nav__link--active {
+  color: var(--hw-cyan) !important;
+  font-weight: 700;
+}
+
+.md-nav__link:hover {
+  color: var(--hw-cyan);
+}
+
+/* ── Main background ────────────────────────────────────────────── */
+.md-main,
+.md-main__inner {
+  background: var(--hw-bg);
+}
+
+.md-content {
+  background: var(--hw-bg);
+}
+
+/* ── Tables (fallback & spec tables) ────────────────────────────── */
+.md-typeset table:not([class]) {
+  font-size: 0.8rem;
+  background: var(--hw-surface);
+  border: 1px solid var(--hw-border);
+  border-radius: 8px;
+  overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--hw-card);
+  color: var(--hw-label);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  border-bottom: 1px solid var(--hw-border);
+  padding: 9px 14px;
+}
+
+.md-typeset table:not([class]) td {
+  border-bottom: 1px solid var(--hw-border);
+  padding: 9px 14px;
+  color: var(--hw-text);
+  vertical-align: top;
+}
+
+.md-typeset table:not([class]) tr:last-child td {
+  border-bottom: none;
+}
+
+.md-typeset table:not([class]) tbody tr:hover td {
+  background: var(--hw-cyan-dim);
+}
+
+/* First column in spec tables (Field label) */
+.md-typeset table:not([class]) td:first-child {
+  color: var(--hw-label);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* ── Admonitions ────────────────────────────────────────────────── */
+.md-typeset .admonition,
+.md-typeset details {
+  background: var(--hw-surface) !important;
+  border: 1px solid var(--hw-border) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-size: 0.85rem;
+}
+
+.md-typeset .admonition-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* Quote/cite admonition (user notes) */
+.md-typeset .admonition.quote,
+.md-typeset .admonition.cite {
+  border-left: 3px solid var(--hw-orange) !important;
+}
+.md-typeset .quote > .admonition-title,
+.md-typeset .cite > .admonition-title {
+  background: var(--hw-orange-dim) !important;
+  color: var(--hw-orange) !important;
+}
+.md-typeset .quote > .admonition-title::before,
+.md-typeset .cite > .admonition-title::before {
+  background-color: var(--hw-orange) !important;
+}
+
+/* Tip admonition */
+.md-typeset .admonition.tip {
+  border-left: 3px solid var(--hw-cyan) !important;
+}
+.md-typeset .tip > .admonition-title {
+  background: var(--hw-cyan-dim) !important;
+  color: var(--hw-cyan) !important;
+}
+.md-typeset .tip > .admonition-title::before {
+  background-color: var(--hw-cyan) !important;
+}
+
+/* ── Code blocks ────────────────────────────────────────────────── */
+.md-typeset .highlight,
+.md-typeset pre {
+  background: var(--hw-surface) !important;
+  border: 1px solid var(--hw-border);
+  border-radius: 7px;
+}
+
+/* ── md-button overrides ────────────────────────────────────────── */
+.md-typeset .md-button {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  border: 1.5px solid var(--hw-border-hi);
+  color: var(--hw-label);
+  padding: 8px 20px;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+}
+.md-typeset .md-button:hover {
+  border-color: var(--hw-cyan);
+  color: var(--hw-cyan);
+  background: var(--hw-cyan-dim);
+}
+.md-typeset .md-button--primary {
+  background: var(--hw-cyan);
+  border-color: var(--hw-cyan);
+  color: var(--hw-bg) !important;
+}
+.md-typeset .md-button--primary:hover {
+  background: #30d8f8;
+  border-color: #30d8f8;
+  color: var(--hw-bg) !important;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────── */
+.md-footer {
+  background: var(--hw-surface);
+  border-top: 1px solid var(--hw-border);
+}
+
+.md-footer-meta {
+  background: var(--hw-bg);
+}
+
+/* ================================================================
+   HOME PAGE — Hero
+   ================================================================ */
+.hw-hero {
+  padding: 36px 0 32px;
+  text-align: center;
+}
+
+.hw-hero-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--hw-cyan);
+  margin-bottom: 20px;
+  opacity: 0.85;
+}
+
+.hw-hero-title {
+  font-family: 'Syne', sans-serif !important;
+  font-weight: 800 !important;
+  font-size: clamp(1.8rem, 3.8vw, 2.6rem) !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.03em !important;
+  color: var(--hw-text) !important;
+  margin: 0 0 18px !important;
+  border: none !important;
+  white-space: nowrap !important;
+}
+
+.hw-hero-title em {
+  font-style: normal;
+  color: var(--hw-cyan);
+}
+
+.hw-hero-sub {
+  font-size: 0.95rem;
+  color: var(--hw-label);
+  margin-bottom: 40px;
+  max-width: 460px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* Stats row */
+.hw-stats {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 40px;
+}
+
+.hw-stat {
+  padding: 16px 36px;
+  border: 1px solid var(--hw-border);
+  background: var(--hw-surface);
+}
+
+.hw-stat:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.hw-stat:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.hw-stat + .hw-stat {
+  border-left: none;
+}
+
+.hw-stat-n {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.9rem;
+  color: var(--hw-cyan);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.hw-stat-l {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--hw-label);
+  margin-top: 4px;
+}
+
+/* CTA button */
+.hw-cta-btn {
+  display: inline-block;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--hw-cyan);
+  color: var(--hw-bg) !important;
+  padding: 13px 32px;
+  border-radius: 7px;
+  text-decoration: none !important;
+  transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+  box-shadow: 0 4px 20px rgba(0,200,240,0.25);
+}
+
+.hw-cta-btn:hover {
+  background: #30d8f8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,200,240,0.35);
+  color: var(--hw-bg) !important;
+}
+
+/* ── Divider ────────────────────────────────────────────────────── */
+.hw-divider {
+  border: none;
+  border-top: 1px solid var(--hw-border);
+  margin: 48px 0;
+}
+
+/* ── How-to steps ───────────────────────────────────────────────── */
+.hw-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2px;
+  background: var(--hw-border);
+  border: 1px solid var(--hw-border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 48px;
+}
+
+.hw-step {
+  background: var(--hw-surface);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-step-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--hw-cyan);
+  letter-spacing: 0.08em;
+}
+
+.hw-step-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--hw-text);
+  letter-spacing: -0.01em;
+}
+
+.hw-step-desc {
+  font-size: 0.8rem;
+  color: var(--hw-label);
+  line-height: 1.6;
+}
+
+.hw-step-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--hw-cyan) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-decoration: none !important;
+}
+
+.hw-step-link:hover {
+  color: #fff !important;
+}
+
+/* ── Section header ─────────────────────────────────────────────── */
+.hw-section-hdr {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hw-border);
+}
+
+.hw-section-hdr-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--hw-text);
+  letter-spacing: -0.02em;
+}
+
+.hw-section-hdr-link {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--hw-cyan) !important;
+  text-decoration: none !important;
+  letter-spacing: 0.04em;
+  transition: color 0.15s;
+}
+
+.hw-section-hdr-link:hover {
+  color: #fff !important;
+}
+
+/* ================================================================
+   HARDWARE SPEC CARDS (table → cards via JS)
+   ================================================================ */
+.hw-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin: 0 0 24px;
+}
+
+.hw-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--hw-card);
+  border: 1px solid var(--hw-border);
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none !important;
+  color: inherit !important;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.hw-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--hw-cyan), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.hw-card:hover {
+  border-color: var(--hw-border-hi);
+  background: var(--hw-card-hov);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,200,240,0.12);
+  color: inherit !important;
+}
+
+.hw-card:hover::before {
+  opacity: 1;
+}
+
+.hw-card-body {
+  padding: 20px 20px 16px;
+  flex: 1;
+}
+
+.hw-card-gpu {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--hw-cyan);
+  line-height: 1.3;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.hw-card-cpu {
+  font-size: 0.82rem;
+  color: var(--hw-text);
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
+.hw-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 12px 20px;
+  border-top: 1px solid var(--hw-border);
+  background: var(--hw-surface);
+}
+
+/* ── Badges ─────────────────────────────────────────────────────── */
+.hw-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.64rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.hw-badge-ram {
+  background: var(--hw-green-dim);
+  color: var(--hw-green);
+  border: 1px solid rgba(58,254,140,0.2);
+}
+
+.hw-badge-id {
+  background: var(--hw-cyan-dim);
+  color: var(--hw-cyan);
+  border: 1px solid rgba(0,200,240,0.2);
+}
+
+.hw-badge-date {
+  background: var(--hw-surface);
+  color: var(--hw-muted);
+  border: 1px solid var(--hw-border);
+  margin-left: auto;
+}
+
+/* ================================================================
+   PER-REPORT PAGE — GPU Hero block
+   ================================================================ */
+.hw-report-hero {
+  background: linear-gradient(135deg, var(--hw-card) 0%, var(--hw-surface) 100%);
+  border: 1px solid var(--hw-border);
+  border-left: 4px solid var(--hw-cyan);
+  border-radius: 10px;
+  padding: 28px 28px 24px;
+  margin: 24px 0 32px;
+  box-shadow: var(--hw-glow-cyan);
+}
+
+.hw-report-gpu-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--hw-cyan);
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+.hw-report-gpu-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: var(--hw-text);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+}
+
+.hw-report-quick-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hw-qs-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--hw-bg);
+  border: 1px solid var(--hw-border);
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+
+.hw-qs-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--hw-label);
+}
+
+.hw-qs-val {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--hw-text);
+}
+
+/* ── Submitted date line ─────────────────────────────────────────── */
+.md-typeset p:has(strong:first-child) {
+  font-size: 0.8rem;
+  color: var(--hw-label);
+}
+
+/* ── HR separator ────────────────────────────────────────────────── */
+.md-typeset hr {
+  border-color: var(--hw-border);
+}
+
+/* ── Search ─────────────────────────────────────────────────────── */
+.md-search__form {
+  background: var(--hw-surface) !important;
+  border: 1px solid var(--hw-border) !important;
+  border-radius: 7px !important;
+}
+
+.md-search__input {
+  font-family: 'Syne', sans-serif !important;
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+
+/* Tighten stat padding and step columns on narrower layouts */
+@media screen and (max-width: 1280px) {
+  .hw-stat {
+    padding: 10px 20px;
+  }
+
+  .hw-steps {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hw-step:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .hw-stats {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .hw-stat {
+    border-radius: 8px !important;
+    padding: 10px 20px;
+  }
+
+  .hw-stat + .hw-stat {
+    border-left: 1px solid var(--hw-border) !important;
+  }
+
+  .hw-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .hw-step:first-child {
+    grid-column: auto;
+  }
+
+  .hw-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hw-report-hero {
+    padding: 20px 18px 18px;
+  }
+
+  .hw-report-quick-stats {
+    flex-direction: column;
+    gap: 6px;
+  }
+}

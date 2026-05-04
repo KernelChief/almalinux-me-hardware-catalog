@@ -166,7 +166,7 @@ def render_reports_table(rows, link_prefix, limit=None):
         processor = row["processor"] or ""
         memory = row["memory"] or ""
         gpu = row["gpu"] or ""
-        link = f"[{report_id}]({link_prefix}{report_id}/)"
+        link = f"[{report_id}]({link_prefix}{report_id}/index.md)"
         lines.append(f"| {link} | {timestamp} | {system} | {processor} | {memory} | {gpu} |")
     return "\n".join(lines)
 
@@ -217,7 +217,7 @@ def update_results_indexes(reports_dir):
 
 
 report_id = str(report.get("report_id", "")).strip()
-if not re.fullmatch(r"[a-f0-9]{8}", report_id):
+if not re.fullmatch(r"[a-f0-9]{8,16}", report_id):
     print("Invalid or missing report_id", file=sys.stderr)
     sys.exit(1)
 
@@ -231,7 +231,7 @@ with open(json_path, "w", encoding="utf-8") as f:
     json.dump(report, f, indent=2, sort_keys=True)
     f.write("\n")
 
-notes = report.get("user_notes") or "None"
+notes = (report.get("user_notes") or "").strip()
 
 system = report.get("system", {})
 processor = report.get("processor", {})
@@ -240,53 +240,125 @@ memory = report.get("memory", {})
 graphics = report.get("graphics", []) or []
 storage = report.get("storage_controllers", []) or []
 
+
+def _cell(value):
+    return str(value).replace("|", r"\|").replace("\n", " ").strip() or "—"
+
+
+def _indent(text, n=4):
+    prefix = " " * n
+    return "\n".join(prefix + line for line in str(text).split("\n"))
+
+
+def _clean_gpu(name):
+    name = re.sub(r" \(rev [a-f0-9]+\)", "", str(name), flags=re.IGNORECASE)
+    name = name.replace("NVIDIA Corporation ", "NVIDIA ")
+    name = re.sub(r"Advanced Micro Devices, Inc\. \[AMD/ATI\] ", "AMD ", name)
+    name = re.sub(r"Advanced Micro Devices, Inc\. ", "AMD ", name)
+    name = re.sub(r"\[([^\]]+)\]", r"\1", name)
+    return name.strip() or "—"
+
+
+total_gb = _cell(memory.get("total_gb", memory.get("total", "")))
+os_short = re.sub(r"\s*\([^)]+\)\s*$", "", _cell(system.get("os_release", ""))).strip()
+
+# ── GPU hero block (raw HTML, MkDocs passes it through) ──────────
 md_lines = []
-md_lines.append(f"# Hardware Report: {report_id}")
+md_lines.append(f"# Hardware Report: `{report_id}`")
 md_lines.append("")
-md_lines.append(f"Timestamp (UTC): {report.get('timestamp', '')}")
+
+if graphics:
+    main_gpu = next((g for g in graphics if isinstance(g, dict)), {})
+    gpu_display = _clean_gpu(main_gpu.get("device", ""))
+    cpu_display = re.sub(r" \d+-Core Processor$", "", _cell(processor.get("model", processor.get("name", ""))), flags=re.IGNORECASE)
+    cpu_display = re.sub(r" Processor$", "", cpu_display, flags=re.IGNORECASE).strip() or "—"
+
+    md_lines.append('<div class="hw-report-hero">')
+    md_lines.append('  <div class="hw-report-gpu-label">Primary GPU</div>')
+    md_lines.append(f'  <div class="hw-report-gpu-name">{gpu_display}</div>')
+    md_lines.append('  <div class="hw-report-quick-stats">')
+    md_lines.append(f'    <span class="hw-qs-item"><span class="hw-qs-label">CPU</span><span class="hw-qs-val">{cpu_display}</span></span>')
+    md_lines.append(f'    <span class="hw-qs-item"><span class="hw-qs-label">RAM</span><span class="hw-qs-val">{total_gb} GB</span></span>')
+    if os_short:
+        md_lines.append(f'    <span class="hw-qs-item"><span class="hw-qs-label">OS</span><span class="hw-qs-val">{os_short}</span></span>')
+    md_lines.append('  </div>')
+    md_lines.append('</div>')
+    md_lines.append("")
+
+md_lines.append(f"**Submitted:** {report.get('timestamp', '')}")
 md_lines.append("")
-md_lines.append("## Notes")
-md_lines.append(notes)
+md_lines.append("---")
 md_lines.append("")
+
+if notes:
+    md_lines.append('!!! quote "User Notes"')
+    md_lines.append(_indent(notes))
+    md_lines.append("")
+
 md_lines.append("## System")
-md_lines.append(f"- OS: {system.get('os_release', '')}")
-md_lines.append(f"- Kernel: {system.get('kernel', '')}")
-md_lines.append(f"- Platform: {system.get('platform', '')}")
 md_lines.append("")
+md_lines.append("| Field | Value |")
+md_lines.append("|-------|-------|")
+md_lines.append(f"| OS | {_cell(system.get('os_release', ''))} |")
+md_lines.append(f"| Kernel | `{_cell(system.get('kernel', ''))}` |")
+md_lines.append(f"| Platform | {_cell(system.get('platform', ''))} |")
+md_lines.append("")
+
 md_lines.append("## Processor")
-md_lines.append(f"- Model: {processor.get('model', '')}")
-md_lines.append(f"- Cores: {processor.get('cores', '')}")
 md_lines.append("")
+md_lines.append("| Field | Value |")
+md_lines.append("|-------|-------|")
+md_lines.append(f"| Model | {_cell(processor.get('model', processor.get('name', '')))} |")
+md_lines.append(f"| Cores | {_cell(processor.get('cores', ''))} |")
+md_lines.append("")
+
 md_lines.append("## Memory")
-md_lines.append(f"- Total (GB): {memory.get('total_gb', '')}")
+md_lines.append("")
+md_lines.append(f"**Total:** {total_gb} GB")
+md_lines.append("")
+
 modules = memory.get("modules", []) or []
 if modules:
+    md_lines.append("### Memory Modules")
     md_lines.append("")
-    md_lines.append("### Modules")
+    md_lines.append("| Size | Speed | Configured Speed | Manufacturer |")
+    md_lines.append("|------|-------|-----------------|--------------|")
     for mod in modules:
-        size = mod.get("size", "")
-        speed = mod.get("speed", "")
-        conf = mod.get("configured_speed", "")
-        maker = mod.get("manufacturer", "")
-        md_lines.append(f"- {size} @ {speed} (configured: {conf}, maker: {maker})")
+        if not isinstance(mod, dict):
+            continue
+        md_lines.append(
+            f"| {_cell(mod.get('size', ''))} "
+            f"| {_cell(mod.get('speed', ''))} "
+            f"| {_cell(mod.get('configured_speed', ''))} "
+            f"| {_cell(mod.get('manufacturer', ''))} |"
+        )
+    md_lines.append("")
 
-md_lines.append("")
 md_lines.append("## Graphics")
-if graphics:
-    for gpu in graphics:
-        device = gpu.get("device", "")
-        driver = gpu.get("driver", "")
-        md_lines.append(f"- {device} (driver: {driver})")
-else:
-    md_lines.append("- None detected")
-
 md_lines.append("")
-md_lines.append("## Storage Controllers")
-if storage:
-    for ctrl in storage:
-        md_lines.append(f"- {ctrl.get('device', '')}")
+if graphics:
+    md_lines.append("| Device | Driver |")
+    md_lines.append("|--------|--------|")
+    for gpu in graphics:
+        if not isinstance(gpu, dict):
+            continue
+        md_lines.append(f"| {_cell(gpu.get('device', ''))} | {_cell(gpu.get('driver', ''))} |")
 else:
-    md_lines.append("- None detected")
+    md_lines.append("_No graphics devices detected._")
+md_lines.append("")
+
+md_lines.append("## Storage Controllers")
+md_lines.append("")
+if storage:
+    md_lines.append("| Device |")
+    md_lines.append("|--------|")
+    for ctrl in storage:
+        if not isinstance(ctrl, dict):
+            continue
+        md_lines.append(f"| {_cell(ctrl.get('device', ''))} |")
+else:
+    md_lines.append("_No storage controllers detected._")
+md_lines.append("")
 
 md_path = os.path.join(results_dir, "index.md")
 with open(md_path, "w", encoding="utf-8") as f:

@@ -1,10 +1,47 @@
-site_name: AlmaLinux M&E Works On Database
+site_name: AlmaLinux M&E — Works On
 site_description: Community hardware survey results for AlmaLinux M&E workflows.
+site_url: https://kernelchief.github.io/almalinux-me-hardware-catalog/
 docs_dir: docs
 
 theme:
   name: material
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.instant
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/cards.js
+
+exclude_docs: |
+  superpowers/
 
 plugins:
   - search
   - awesome-nav
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - attr_list
+  - md_in_html

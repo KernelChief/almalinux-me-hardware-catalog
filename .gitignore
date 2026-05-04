@@ -11,3 +11,18 @@ __pycache__/
 rpmbuild/
 *.rpm
 
+# MkDocs build output
+site/
+
+# Claude Code & Superpowers (dev tooling, not project content)
+.claude/
+.superpowers/
+
+# Internal planning & brainstorm docs
+docs/superpowers/
+
+# Obsolete test scaffolding (dashboard.py approach was dropped)
+tests/
+conftest.py
+requirements-dev.txt
+scripts/__init__.py
