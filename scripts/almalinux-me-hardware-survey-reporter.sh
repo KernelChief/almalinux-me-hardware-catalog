@@ -26,7 +26,8 @@ step_run() { echo -ne "  ${CYAN}…${RESET} $1"; }
 # TODO: Replace with official AlmaLinux M&E SIG email once assigned
 SURVEY_EMAIL="tristan.theroux@pm.me"
 # Allow override, but never allow empty.
-OUTPUT_FILE_JSON="${OUTPUT_FILE_JSON:-almalinux_me_report.json}"
+OUTPUT_FILE_JSON="${OUTPUT_FILE_JSON:-${HOME}/Downloads/almalinux_me_report.json}"
+mkdir -p "$(dirname "$OUTPUT_FILE_JSON")"
 
 # If running via curl | bash, stdin is the script itself.
 # Re-exec from a temp file so we can read prompts from /dev/tty.
@@ -296,6 +297,7 @@ echo ""
 echo -e "${BLUE}  ┌─ Next steps ──────────────────────────────────┐${RESET}"
 echo -e "${BLUE}  │${RESET}  1. Enter Report ID : ${PURPLE}${REPORT_ID}${RESET}"
 echo -e "${BLUE}  │${RESET}  2. Paste JSON (already in your clipboard)"
+echo -e "${BLUE}  │${RESET}     ${CYAN}${OUTPUT_FILE_JSON}${RESET}"
 echo -e "${BLUE}  │${RESET}  3. Submit — a maintainer will review & merge"
 echo -e "${BLUE}  └───────────────────────────────────────────────┘${RESET}"
 echo ""
