@@ -303,10 +303,10 @@ echo -e "${BLUE}  └───────────────────�
 echo ""
 
 # ── Non-GitHub fallback ───────────────────────────────────────────────────────
-MAILTO_URL="mailto:${SURVEY_EMAIL}?subject=M%26E%20Hardware%20Report%20%5B${REPORT_ID}%5D"
 echo -e "${YELLOW}  ──────────────────────────────────────────────────${RESET}"
 echo -e "${YELLOW}  No GitHub account? Submit by email instead:${RESET}"
-echo -e "  ${YELLOW}\e]8;;${MAILTO_URL}\e\\${MAILTO_URL}\e]8;;\e\\${RESET}"
+echo -e "  ${CYAN}${SURVEY_EMAIL}${RESET}"
+echo -e "  Subject: ${CYAN}M&E Hardware Report [${REPORT_ID}]${RESET}"
 echo -e "  ${YELLOW}(Attach ${OUTPUT_FILE_JSON} to the email)${RESET}"
 echo ""
 
