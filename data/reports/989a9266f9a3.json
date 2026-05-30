@@ -1,0 +1,25 @@
+{
+  "graphics": [
+    {
+      "device": "NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1)",
+      "driver": "nvidia"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "62"
+  },
+  "processor": {
+    "cores": "24",
+    "model": "12th Gen Intel(R) Core(TM) i9-12900K"
+  },
+  "report_id": "989a9266f9a3",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "5.14.0-611.41.1.el9_7.x86_64",
+    "os_release": "AlmaLinux 9.7 (Moss Jungle Cat)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-05-04T20:05:57Z",
+  "user_notes": ""
+}
