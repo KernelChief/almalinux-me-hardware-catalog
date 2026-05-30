@@ -1,0 +1,25 @@
+{
+  "graphics": [
+    {
+      "device": "NVIDIA Corporation GA106 [GeForce RTX 3060 Lite Hash Rate] (rev a1)",
+      "driver": "nvidia"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "125"
+  },
+  "processor": {
+    "cores": "24",
+    "model": "AMD Ryzen 9 3900X 12-Core Processor"
+  },
+  "report_id": "87d624ea29db",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "5.14.0-611.45.1.el9_7.x86_64",
+    "os_release": "AlmaLinux 9.7 (Moss Jungle Cat)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-05-04T20:02:50Z",
+  "user_notes": ""
+}
