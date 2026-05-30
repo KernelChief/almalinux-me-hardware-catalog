@@ -1,0 +1,25 @@
+{
+  "graphics": [
+    {
+      "device": "NVIDIA Corporation AD102 [GeForce RTX 4090] (rev a1)",
+      "driver": "nvidia"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "187"
+  },
+  "processor": {
+    "cores": "32",
+    "model": "Intel(R) Core(TM) i9-14900KS"
+  },
+  "report_id": "ff910bee162b",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "6.12.0-124.52.3.el10_1.x86_64",
+    "os_release": "AlmaLinux 10.1 (Heliotrope Lion)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-05-05T17:34:20Z",
+  "user_notes": "all good so far"
+}
