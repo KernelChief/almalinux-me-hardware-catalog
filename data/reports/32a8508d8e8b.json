@@ -1,0 +1,25 @@
+{
+  "graphics": [
+    {
+      "device": "NVIDIA Corporation GA106 [GeForce RTX 3060 Lite Hash Rate] (rev a1)",
+      "driver": "nvidia"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "125"
+  },
+  "processor": {
+    "cores": "32",
+    "model": "AMD Ryzen 9 5900XT 16-Core Processor"
+  },
+  "report_id": "32a8508d8e8b",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "5.14.0-611.47.1.el9_7.x86_64",
+    "os_release": "AlmaLinux 9.7 (Moss Jungle Cat)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-05-04T20:04:27Z",
+  "user_notes": ""
+}
