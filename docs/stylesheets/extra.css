@@ -361,7 +361,6 @@ body,
   color: var(--hw-text) !important;
   margin: 0 0 18px !important;
   border: none !important;
-  white-space: nowrap !important;
 }
 
 .hw-hero-title em {
