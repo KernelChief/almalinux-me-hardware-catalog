@@ -1,0 +1,25 @@
+{
+  "graphics": [
+    {
+      "device": "Intel Corporation 3rd Gen Core processor Graphics Controller (rev 09)",
+      "driver": "i915"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "15"
+  },
+  "processor": {
+    "cores": "4",
+    "model": "Intel(R) Core(TM) i5-3210M CPU @ 2.50GHz"
+  },
+  "report_id": "aed6028b8127",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "6.12.0-124.49.1.el10_1.x86_64_v2",
+    "os_release": "AlmaLinux 10.1 (Heliotrope Lion)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-05-04T19:57:55Z",
+  "user_notes": ""
+}

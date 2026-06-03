@@ -1,0 +1,25 @@
+{
+  "graphics": [
+    {
+      "device": "Advanced Micro Devices, Inc. [AMD/ATI] Granite Ridge [Radeon Graphics] (rev c1)",
+      "driver": "amdgpu"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "60"
+  },
+  "processor": {
+    "cores": "32",
+    "model": "AMD Ryzen 9 9950X 16-Core Processor"
+  },
+  "report_id": "09105e1c97b5",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "5.14.0-611.38.1.el9_7.x86_64",
+    "os_release": "AlmaLinux 9.7 (Moss Jungle Cat)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-05-04T20:08:32Z",
+  "user_notes": ""
+}

@@ -1,0 +1,29 @@
+{
+  "graphics": [
+    {
+      "device": "NVIDIA Corporation GP104 [GeForce GTX 1070] (rev a1)",
+      "driver": "nvidia"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "46"
+  },
+  "processor": {
+    "cores": "16",
+    "model": "Intel(R) Xeon(R) CPU X5570 @ 2.93GHz"
+  },
+  "report_id": "50b0b658e79a",
+  "storage_controllers": [
+    {
+      "device": "Broadcom / LSI SAS1068E PCI-Express Fusion-MPT SAS (rev 08)"
+    }
+  ],
+  "system": {
+    "kernel": "5.14.0-611.45.1.el9_7.x86_64",
+    "os_release": "AlmaLinux 9.7 (Moss Jungle Cat)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-05-04T20:07:04Z",
+  "user_notes": ""
+}

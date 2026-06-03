@@ -126,21 +126,13 @@
     return rows.length;
   }
 
-  /* ── Update stat counters ────────────────────────────────────── */
-  function updateStats(count) {
-    document.querySelectorAll('[data-stat]').forEach(function (el) {
-      if (el.dataset.stat === 'reports') el.textContent = count;
-    });
-  }
-
   /* ── Run after navigation (MkDocs instant-loading) ──────────── */
+  /* Stat counters are rendered server-side by scripts/gen_reports.py from the
+     full report set, so we only transform tables into cards here. */
   function run() {
-    var total = 0;
     document.querySelectorAll('.md-content table').forEach(function (t) {
-      var n = transformTable(t);
-      if (n) total += n;
+      transformTable(t);
     });
-    if (total) updateStats(total);
   }
 
   /* ── Copy command buttons ────────────────────────────────────── */

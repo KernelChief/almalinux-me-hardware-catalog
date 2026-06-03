@@ -35,6 +35,9 @@ extra_javascript:
 exclude_docs: |
   superpowers/
 
+hooks:
+  - scripts/gen_reports.py
+
 plugins:
   - search
   - awesome-nav

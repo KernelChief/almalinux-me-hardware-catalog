@@ -186,18 +186,24 @@ if have_cmd dmidecode; then
   fi
 
   if [ -n "$DMIDECODE_OUT" ]; then
+    # Each "Memory Device" block is flushed when the next one starts (and at
+    # EOF). Patterns are anchored to the field start so "Volatile Size:" and
+    # "Configured Memory Speed:" do not clobber "Size:" / "Speed:".
     MEM_MODULES="$(printf "%s" "$DMIDECODE_OUT" | awk '
-      /Size: [0-9]/ { s=$2" "$3 }
-      /Speed: [0-9]/ { sp=$2" "$3 }
-      /Manufacturer:/ { m=$2 }
-      /Configured Memory Speed:/ { cs=$4" "$5 }
-      /Locator:/ {
-        if(s!=""){
-          if(found) printf ",\n";
+      function flush() {
+        if (s != "") {
+          if (found) printf ",\n";
           printf "    {\"size\":\"%s\",\"speed\":\"%s\",\"configured_speed\":\"%s\",\"manufacturer\":\"%s\"}", s, sp, cs, m;
-          found=1; s=""; sp=""; cs=""; m=""
+          found=1
         }
-      }'
+        s=""; sp=""; cs=""; m=""
+      }
+      /^Memory Device/ { flush() }
+      /^[ \t]*Size: [0-9]/ { s=$2" "$3 }
+      /^[ \t]*Speed: [0-9]/ { sp=$2" "$3 }
+      /^[ \t]*Configured Memory Speed: [0-9]/ { cs=$4" "$5 }
+      /^[ \t]*Manufacturer:/ { line=$0; sub(/^[ \t]*Manufacturer:[ \t]*/, "", line); m=line }
+      END { flush() }'
     )"
   else
     echo "⚠️ Could not read memory module details (dmidecode requires sudo on most systems)."
