@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
-import base64
+"""Validate a hardware report pasted into a GitHub issue and write it to disk.
+
+This is the whole ingest step: pull the JSON out of the issue body, validate it
+strictly (it gets published automatically, so "valid" must mean "safe"), and
+write a single `data/reports/{report_id}.json`. The site's per-report page and
+index tables are generated at build time by `scripts/gen_reports.py`, so this
+script never touches Markdown or the index.
+
+It communicates back to the workflow via GITHUB_OUTPUT:
+  status=ok      report_id=<id>     -> workflow commits the file and deploys
+  status=invalid message=<reason>   -> workflow comments the reason on the issue
+A bad submission is the submitter's mistake, not a pipeline error, so we exit 0
+in both cases and let the workflow decide what to say.
+"""
 import json
 import os
 import re
 import sys
-from datetime import datetime
 
 EVENT_PATH = os.environ.get("GITHUB_EVENT_PATH")
 if not EVENT_PATH:
@@ -14,38 +26,16 @@ if not EVENT_PATH:
 with open(EVENT_PATH, "r", encoding="utf-8") as f:
     event = json.load(f)
 
-issue = event.get("issue", {})
-body = issue.get("body", "")
+body = event.get("issue", {}).get("body", "") or ""
 
-json_text = None
-m = re.search(r"```json\s*(\{.*?\})\s*```", body, re.DOTALL)
-if m:
-    json_text = m.group(1)
-else:
-    m2 = re.search(r"(\{.*\})", body, re.DOTALL)
-    if m2:
-        json_text = m2.group(1)
+# Limits. Reports are public and auto-published, so anything oversized or weird
+# is rejected rather than rendered.
+MAX_BODY_BYTES = 64 * 1024
+MAX_STRING = 2000
+MAX_ARRAY = 128
+MAX_DEPTH = 8
 
-if not json_text:
-    m3 = re.search(r"```(?:text|)\s*([A-Za-z0-9+/=\\s]+)\\s*```", body, re.DOTALL)
-    if m3:
-        try:
-            decoded = base64.b64decode(m3.group(1), validate=True).decode("utf-8", errors="strict")
-            json_text = decoded
-        except (ValueError, UnicodeDecodeError):
-            json_text = None
-
-if not json_text:
-    print("No JSON found in issue body", file=sys.stderr)
-    sys.exit(1)
-
-try:
-    report = json.loads(json_text)
-except json.JSONDecodeError as e:
-    print(f"Invalid JSON in issue body: {e}", file=sys.stderr)
-    sys.exit(1)
-
-required_top = [
+REQUIRED_TOP = [
     "report_id",
     "timestamp",
     "system",
@@ -54,316 +44,121 @@ required_top = [
     "graphics",
     "storage_controllers",
 ]
-for key in required_top:
+
+PASTE_HELP = (
+    "Re-run the script and paste the entire contents of "
+    "`almalinux_me_report.json` exactly as generated, with no edits. "
+    "It must start with `{` and end with `}`."
+)
+
+
+def set_output(name, value):
+    out = os.environ.get("GITHUB_OUTPUT")
+    if not out:
+        return
+    with open(out, "a", encoding="utf-8") as fh:
+        fh.write(f"{name}<<__ISSUE_EOF__\n{value}\n__ISSUE_EOF__\n")
+
+
+def reject(message):
+    print(f"Rejected submission: {message}", file=sys.stderr)
+    set_output("status", "invalid")
+    set_output("message", message)
+    sys.exit(0)
+
+
+# ── Extract the JSON ────────────────────────────────────────────────────────
+# Prefer the ```json fence the issue form produces, then the first {...} blob.
+# Take the fence content verbatim so a malformed paste yields an honest parse
+# error instead of brace-matching onto the wrong braces.
+json_text = None
+fence = re.search(r"```json\s*\n(.*?)```", body, re.DOTALL)
+if fence:
+    json_text = fence.group(1).strip()
+if not json_text:
+    blob = re.search(r"\{.*\}", body, re.DOTALL)
+    if blob:
+        json_text = blob.group(0).strip()
+
+if not json_text:
+    reject(f"No JSON was found in the issue body. {PASTE_HELP}")
+if len(json_text.encode("utf-8")) > MAX_BODY_BYTES:
+    reject("The pasted JSON is too large (over 64 KB). Please submit a single report.")
+if not json_text.lstrip().startswith("{"):
+    reject(
+        "The pasted JSON does not start with `{`: the opening brace is missing "
+        f"or there is text before it. {PASTE_HELP}"
+    )
+
+try:
+    report = json.loads(json_text)
+except json.JSONDecodeError as e:
+    reject(f"The pasted JSON is not valid: {e}. {PASTE_HELP}")
+
+if not isinstance(report, dict):
+    reject(f"The pasted JSON must be a single object. {PASTE_HELP}")
+
+
+# ── Strict structural validation ────────────────────────────────────────────
+def check_safe(value, depth=0):
+    """Reject oversized strings/arrays, control characters, and deep nesting."""
+    if depth > MAX_DEPTH:
+        reject("The report is nested too deeply.")
+    if isinstance(value, str):
+        if len(value) > MAX_STRING:
+            reject(f"A field is too long (over {MAX_STRING} characters).")
+        if any(ord(ch) < 32 and ch not in "\t\n\r" for ch in value):
+            reject("A field contains control characters. Please paste the file as-is.")
+    elif isinstance(value, list):
+        if len(value) > MAX_ARRAY:
+            reject(f"A list has too many entries (over {MAX_ARRAY}).")
+        for item in value:
+            check_safe(item, depth + 1)
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            check_safe(key, depth + 1)
+            check_safe(item, depth + 1)
+
+
+check_safe(report)
+
+for key in REQUIRED_TOP:
     if key not in report:
-        print(f"Missing required field: {key}", file=sys.stderr)
-        sys.exit(1)
+        reject(f"The report is missing the required field `{key}`. {PASTE_HELP}")
 
 if not isinstance(report.get("system"), dict):
-    print("Field 'system' must be an object", file=sys.stderr)
-    sys.exit(1)
+    reject("Field `system` must be an object. " + PASTE_HELP)
 if not isinstance(report.get("processor"), dict):
-    print("Field 'processor' must be an object", file=sys.stderr)
-    sys.exit(1)
+    reject("Field `processor` must be an object. " + PASTE_HELP)
 if not isinstance(report.get("memory"), dict):
-    print("Field 'memory' must be an object", file=sys.stderr)
-    sys.exit(1)
+    reject("Field `memory` must be an object. " + PASTE_HELP)
 if not isinstance(report.get("graphics"), list):
-    print("Field 'graphics' must be a list", file=sys.stderr)
-    sys.exit(1)
+    reject("Field `graphics` must be a list. " + PASTE_HELP)
 if not isinstance(report.get("storage_controllers"), list):
-    print("Field 'storage_controllers' must be a list", file=sys.stderr)
-    sys.exit(1)
-
-REPORTS_TABLE_START = "<!-- REPORTS_TABLE_START -->"
-REPORTS_TABLE_END = "<!-- REPORTS_TABLE_END -->"
-
-
-def parse_timestamp(value):
-    if not value:
-        return None
-    ts = str(value).strip()
-    if not ts:
-        return None
-    if ts.endswith("Z"):
-        ts = ts[:-1] + "+00:00"
-    try:
-        return datetime.fromisoformat(ts)
-    except ValueError:
-        return None
-
-
-def build_report_rows(reports_dir):
-    rows = []
-    if not os.path.isdir(reports_dir):
-        return rows
-    for filename in sorted(os.listdir(reports_dir)):
-        if not filename.endswith(".json"):
-            continue
-        path = os.path.join(reports_dir, filename)
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except (OSError, json.JSONDecodeError):
-            continue
-        report_id = str(data.get("report_id", "")).strip()
-        if not report_id:
-            continue
-        system = data.get("system", {}) or {}
-        processor = data.get("processor", {}) or {}
-        memory = data.get("memory", {}) or {}
-        graphics = data.get("graphics", []) or []
-
-        vendor = system.get("vendor") or system.get("manufacturer") or system.get("brand") or ""
-        model = system.get("model") or system.get("product") or system.get("name") or ""
-        system_label = " ".join([part for part in [str(vendor).strip(), str(model).strip()] if part])
-
-        processor_label = str(processor.get("model") or processor.get("name") or "").strip()
-        memory_label = str(memory.get("total_gb") or memory.get("total") or "").strip()
-        gpu_names = []
-        for gpu in graphics:
-            if not isinstance(gpu, dict):
-                continue
-            name = str(gpu.get("device") or "").strip()
-            if name:
-                gpu_names.append(name)
-        gpu_label = ", ".join(gpu_names)
-
-        timestamp = data.get("timestamp", "")
-        timestamp_dt = parse_timestamp(timestamp)
-
-        rows.append(
-            {
-                "report_id": report_id,
-                "timestamp": str(timestamp).strip(),
-                "timestamp_dt": timestamp_dt,
-                "system": system_label,
-                "processor": processor_label,
-                "memory": memory_label,
-                "gpu": gpu_label,
-            }
-        )
-
-    rows.sort(
-        key=lambda item: (item["timestamp_dt"] or datetime.min, item["report_id"]),
-        reverse=True,
-    )
-    return rows
-
-
-def render_reports_table(rows, link_prefix, limit=None):
-    if not rows:
-        return "_No reports yet. Submitted reports will appear here after approval._"
-    if limit is not None:
-        rows = rows[:limit]
-    lines = []
-    lines.append("| Report ID | Timestamp (UTC) | System | Processor | Memory (GB) | GPU |")
-    lines.append("| --- | --- | --- | --- | --- | --- |")
-    for row in rows:
-        report_id = row["report_id"]
-        timestamp = row["timestamp"] or ""
-        system = row["system"] or ""
-        processor = row["processor"] or ""
-        memory = row["memory"] or ""
-        gpu = row["gpu"] or ""
-        link = f"[{report_id}]({link_prefix}{report_id}/index.md)"
-        lines.append(f"| {link} | {timestamp} | {system} | {processor} | {memory} | {gpu} |")
-    return "\n".join(lines)
-
-
-def update_marked_section(path, new_content):
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read()
-    except OSError:
-        content = ""
-
-    if REPORTS_TABLE_START in content and REPORTS_TABLE_END in content:
-        before = content.split(REPORTS_TABLE_START)[0]
-        after = content.split(REPORTS_TABLE_END)[1]
-        updated = (
-            before
-            + REPORTS_TABLE_START
-            + "\n"
-            + new_content
-            + "\n"
-            + REPORTS_TABLE_END
-            + after
-        )
-    else:
-        if content and not content.endswith("\n"):
-            content += "\n"
-        updated = (
-            content
-            + REPORTS_TABLE_START
-            + "\n"
-            + new_content
-            + "\n"
-            + REPORTS_TABLE_END
-            + "\n"
-        )
-
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(updated)
-
-
-def update_results_indexes(reports_dir):
-    rows = build_report_rows(reports_dir)
-    results_table = render_reports_table(rows, "./")
-    index_table = render_reports_table(rows, "./results/", limit=5)
-
-    update_marked_section(os.path.join("docs", "results", "index.md"), results_table)
-    update_marked_section(os.path.join("docs", "index.md"), index_table)
-
+    reject("Field `storage_controllers` must be a list. " + PASTE_HELP)
 
 report_id = str(report.get("report_id", "")).strip()
 if not re.fullmatch(r"[a-f0-9]{8,16}", report_id):
-    print("Invalid or missing report_id", file=sys.stderr)
-    sys.exit(1)
+    reject(
+        f"`report_id` must be 8 to 16 hexadecimal characters (got `{report_id}`). "
+        + PASTE_HELP
+    )
 
+# ── Write the single source-of-truth file ───────────────────────────────────
 reports_dir = os.path.join("data", "reports")
-results_dir = os.path.join("docs", "results", report_id)
 os.makedirs(reports_dir, exist_ok=True)
-os.makedirs(results_dir, exist_ok=True)
-
 json_path = os.path.join(reports_dir, f"{report_id}.json")
+
+if os.path.exists(json_path):
+    reject(
+        f"A report with ID `{report_id}` already exists. Each machine submits "
+        "once; open a new issue only for different hardware."
+    )
+
 with open(json_path, "w", encoding="utf-8") as f:
     json.dump(report, f, indent=2, sort_keys=True)
     f.write("\n")
 
-notes = (report.get("user_notes") or "").strip()
-
-system = report.get("system", {})
-processor = report.get("processor", {})
-memory = report.get("memory", {})
-
-graphics = report.get("graphics", []) or []
-storage = report.get("storage_controllers", []) or []
-
-
-def _cell(value):
-    return str(value).replace("|", r"\|").replace("\n", " ").strip() or "—"
-
-
-def _indent(text, n=4):
-    prefix = " " * n
-    return "\n".join(prefix + line for line in str(text).split("\n"))
-
-
-def _clean_gpu(name):
-    name = re.sub(r" \(rev [a-f0-9]+\)", "", str(name), flags=re.IGNORECASE)
-    name = name.replace("NVIDIA Corporation ", "NVIDIA ")
-    name = re.sub(r"Advanced Micro Devices, Inc\. \[AMD/ATI\] ", "AMD ", name)
-    name = re.sub(r"Advanced Micro Devices, Inc\. ", "AMD ", name)
-    name = re.sub(r"\[([^\]]+)\]", r"\1", name)
-    return name.strip() or "—"
-
-
-total_gb = _cell(memory.get("total_gb", memory.get("total", "")))
-os_short = re.sub(r"\s*\([^)]+\)\s*$", "", _cell(system.get("os_release", ""))).strip()
-
-# ── GPU hero block (raw HTML, MkDocs passes it through) ──────────
-md_lines = []
-md_lines.append(f"# Hardware Report: `{report_id}`")
-md_lines.append("")
-
-if graphics:
-    main_gpu = next((g for g in graphics if isinstance(g, dict)), {})
-    gpu_display = _clean_gpu(main_gpu.get("device", ""))
-    cpu_display = re.sub(r" \d+-Core Processor$", "", _cell(processor.get("model", processor.get("name", ""))), flags=re.IGNORECASE)
-    cpu_display = re.sub(r" Processor$", "", cpu_display, flags=re.IGNORECASE).strip() or "—"
-
-    md_lines.append('<div class="hw-report-hero">')
-    md_lines.append('  <div class="hw-report-gpu-label">Primary GPU</div>')
-    md_lines.append(f'  <div class="hw-report-gpu-name">{gpu_display}</div>')
-    md_lines.append('  <div class="hw-report-quick-stats">')
-    md_lines.append(f'    <span class="hw-qs-item"><span class="hw-qs-label">CPU</span><span class="hw-qs-val">{cpu_display}</span></span>')
-    md_lines.append(f'    <span class="hw-qs-item"><span class="hw-qs-label">RAM</span><span class="hw-qs-val">{total_gb} GB</span></span>')
-    if os_short:
-        md_lines.append(f'    <span class="hw-qs-item"><span class="hw-qs-label">OS</span><span class="hw-qs-val">{os_short}</span></span>')
-    md_lines.append('  </div>')
-    md_lines.append('</div>')
-    md_lines.append("")
-
-md_lines.append(f"**Submitted:** {report.get('timestamp', '')}")
-md_lines.append("")
-md_lines.append("---")
-md_lines.append("")
-
-if notes:
-    md_lines.append('!!! quote "User Notes"')
-    md_lines.append(_indent(notes))
-    md_lines.append("")
-
-md_lines.append("## System")
-md_lines.append("")
-md_lines.append("| Field | Value |")
-md_lines.append("|-------|-------|")
-md_lines.append(f"| OS | {_cell(system.get('os_release', ''))} |")
-md_lines.append(f"| Kernel | `{_cell(system.get('kernel', ''))}` |")
-md_lines.append(f"| Platform | {_cell(system.get('platform', ''))} |")
-md_lines.append("")
-
-md_lines.append("## Processor")
-md_lines.append("")
-md_lines.append("| Field | Value |")
-md_lines.append("|-------|-------|")
-md_lines.append(f"| Model | {_cell(processor.get('model', processor.get('name', '')))} |")
-md_lines.append(f"| Cores | {_cell(processor.get('cores', ''))} |")
-md_lines.append("")
-
-md_lines.append("## Memory")
-md_lines.append("")
-md_lines.append(f"**Total:** {total_gb} GB")
-md_lines.append("")
-
-modules = memory.get("modules", []) or []
-if modules:
-    md_lines.append("### Memory Modules")
-    md_lines.append("")
-    md_lines.append("| Size | Speed | Configured Speed | Manufacturer |")
-    md_lines.append("|------|-------|-----------------|--------------|")
-    for mod in modules:
-        if not isinstance(mod, dict):
-            continue
-        md_lines.append(
-            f"| {_cell(mod.get('size', ''))} "
-            f"| {_cell(mod.get('speed', ''))} "
-            f"| {_cell(mod.get('configured_speed', ''))} "
-            f"| {_cell(mod.get('manufacturer', ''))} |"
-        )
-    md_lines.append("")
-
-md_lines.append("## Graphics")
-md_lines.append("")
-if graphics:
-    md_lines.append("| Device | Driver |")
-    md_lines.append("|--------|--------|")
-    for gpu in graphics:
-        if not isinstance(gpu, dict):
-            continue
-        md_lines.append(f"| {_cell(gpu.get('device', ''))} | {_cell(gpu.get('driver', ''))} |")
-else:
-    md_lines.append("_No graphics devices detected._")
-md_lines.append("")
-
-md_lines.append("## Storage Controllers")
-md_lines.append("")
-if storage:
-    md_lines.append("| Device |")
-    md_lines.append("|--------|")
-    for ctrl in storage:
-        if not isinstance(ctrl, dict):
-            continue
-        md_lines.append(f"| {_cell(ctrl.get('device', ''))} |")
-else:
-    md_lines.append("_No storage controllers detected._")
-md_lines.append("")
-
-md_path = os.path.join(results_dir, "index.md")
-with open(md_path, "w", encoding="utf-8") as f:
-    f.write("\n".join(md_lines).strip() + "\n")
-
-update_results_indexes(reports_dir)
-
-print(f"Wrote {json_path} and {md_path}")
+set_output("status", "ok")
+set_output("report_id", report_id)
+print(f"Wrote {json_path}")

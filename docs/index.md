@@ -10,18 +10,20 @@ hide:
   <h1 class="hw-hero-title">Works On <em>Database</em></h1>
   <p class="hw-hero-sub">Community hardware reports — privacy-first, no hostnames or serials collected.</p>
   <div class="hw-stats">
+  <!-- STATS_START -->
     <div class="hw-stat">
-      <div class="hw-stat-n" data-stat="reports">2</div>
+      <div class="hw-stat-n">0</div>
       <div class="hw-stat-l">Reports</div>
     </div>
     <div class="hw-stat">
-      <div class="hw-stat-n">2</div>
+      <div class="hw-stat-n">0</div>
       <div class="hw-stat-l">Unique GPUs</div>
     </div>
     <div class="hw-stat">
-      <div class="hw-stat-n">1</div>
-      <div class="hw-stat-l">Platform</div>
+      <div class="hw-stat-n">0</div>
+      <div class="hw-stat-l">Platforms</div>
     </div>
+  <!-- STATS_END -->
   </div>
   <a href="https://github.com/KernelChief/almalinux-me-hardware-catalog/issues/new?template=hardware_report.yml" class="hw-cta-btn" target="_blank" rel="noopener">Submit your rig →</a>
 </div>
@@ -50,7 +52,7 @@ hide:
   <div class="hw-step">
     <div class="hw-step-num">03 — Published</div>
     <div class="hw-step-title">You're in</div>
-    <div class="hw-step-desc">A maintainer reviews and approves. Your hardware report appears in this database automatically — searchable by everyone.</div>
+    <div class="hw-step-desc">Your report is validated automatically and appears in this database within a minute, searchable by everyone.</div>
     <a href="results/index.md" class="hw-step-link">Browse results →</a>
   </div>
 </div>

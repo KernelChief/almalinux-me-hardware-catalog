@@ -2,16 +2,20 @@ name: Ingest Hardware Report Issue
 
 on:
   issues:
-    types: [labeled]
+    types: [labeled, edited]
 
 permissions:
   contents: write
-  pull-requests: write
   issues: write
+
+# Serialize ingests so two submissions can't race on the push to main.
+concurrency:
+  group: ingest-report
+  cancel-in-progress: false
 
 jobs:
   ingest:
-    if: contains(github.event.issue.labels.*.name, 'hardware-report') && contains(github.event.issue.labels.*.name, 'approved')
+    if: contains(github.event.issue.labels.*.name, 'hardware-report') && github.event.issue.state == 'open'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,58 +26,83 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Build report files from issue
+      - name: Validate report and write JSON
+        id: build
         run: python3 scripts/issue-to-report.py
 
-      - name: Check for changes
-        id: changes
-        run: |
-          if git status --porcelain | grep -q .; then
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Comment on issue (no changes)
-        if: steps.changes.outputs.has_changes == 'false'
+      # ── Invalid submission: tell the submitter, label it, close it ──
+      - name: Comment on and close invalid submission
+        if: steps.build.outputs.status == 'invalid'
         uses: actions/github-script@v7
+        env:
+          REASON: ${{ steps.build.outputs.message }}
         with:
           script: |
             const issueNumber = context.payload.issue.number;
-            const body = `⚠️ No changes detected. This report may already exist or be identical to a previous submission.`;
+            const body = `❌ This report could not be added, so this issue has been closed.\n\n${process.env.REASON}\n\nPlease open a new report with the corrected JSON.`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
               body
             });
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: ['invalid']
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              state: 'closed'
+            });
 
-      - name: Stop if no changes
-        if: steps.changes.outputs.has_changes == 'false'
+      # ── Valid submission: commit straight to main ──
+      - name: Commit report
+        if: steps.build.outputs.status == 'ok'
+        env:
+          REPORT_ID: ${{ steps.build.outputs.report_id }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          echo "No changes to commit. Exiting."
-          exit 1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/reports/
+          git commit -m "Add hardware report ${REPORT_ID} (issue #${ISSUE_NUMBER})"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push
 
-      - name: Create pull request
-        id: cpr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "Add hardware report"
-          title: "Add hardware report from issue #${{ github.event.issue.number }}"
-          body: "Generated from approved issue #${{ github.event.issue.number }}."
-          branch: "report/issue-${{ github.event.issue.number }}"
-          labels: "hardware-report"
+      # ── Publish: a token-authored push does not trigger the deploy
+      #    workflow, so build and deploy the site here. ──
+      - name: Install docs dependencies
+        if: steps.build.outputs.status == 'ok'
+        run: pip install -r requirements-mkdocs.txt
 
-      - name: Comment on issue
+      - name: Deploy site
+        if: steps.build.outputs.status == 'ok'
+        run: mkdocs gh-deploy --force
+
+      - name: Comment and close issue
+        if: steps.build.outputs.status == 'ok'
         uses: actions/github-script@v7
+        env:
+          REPORT_ID: ${{ steps.build.outputs.report_id }}
         with:
           script: |
             const issueNumber = context.payload.issue.number;
-            const prUrl = `${{ steps.cpr.outputs.pull-request-url }}`;
-            const body = `✅ Report accepted. A PR has been opened: ${prUrl}\n\nIf everything looks good, a maintainer will merge it.`;
+            const id = process.env.REPORT_ID;
+            const url = `https://kernelchief.github.io/almalinux-me-hardware-catalog/results/${id}/`;
+            const body = `✅ Your report is live: ${url}\n\nThanks for contributing to the catalog!`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
               body
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              state: 'closed'
             });

@@ -1,28 +1,35 @@
-# IDEs
+# --- IDEs ---
 .idea/
 .vscode/
+*.iml
+graphify-out/
 
-# Python
+# --- Python ---
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+venv/
+.venv/
+*.egg-info/
 
-# RPM build output
+# --- RPM & Build Output ---
 rpmbuild/
 *.rpm
+dist/
+build/
 
-# MkDocs build output
-site/
-
-# Claude Code & Superpowers (dev tooling, not project content)
+# --- AI Configuration & Privacy ---
 .claude/
-.superpowers/
+.claudeignore
+CLAUDE.md
+docs/INDEX.md
+docs/QUICK_REFERENCE.md
+docs/learnings/*
+docs/archive/*
 
-# Internal planning & brainstorm docs
-docs/superpowers/
-
-# Obsolete test scaffolding (dashboard.py approach was dropped)
-tests/
-conftest.py
-requirements-dev.txt
-scripts/__init__.py
+# --- OS & System ---
+.DS_Store
+.directory
+*~
+*.swp
