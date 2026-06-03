@@ -1,0 +1,25 @@
+{
+  "graphics": [
+    {
+      "device": "Red Hat, Inc. Virtio 1.0 GPU (rev 01)",
+      "driver": "virtio-pci"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "5"
+  },
+  "processor": {
+    "cores": "2",
+    "model": ""
+  },
+  "report_id": "c96a190f7b90",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "6.12.0-231.el10.aarch64",
+    "os_release": "AlmaLinux Kitten 10 (Lion Cub)",
+    "platform": "aarch64"
+  },
+  "timestamp": "2026-06-03T18:51:53Z",
+  "user_notes": "Mostly works. The only thing that doesn't is downloading NVIDIA drivers. I also can't get GIMP and kdenliva on my vm because they're only compatible with el9."
+}
