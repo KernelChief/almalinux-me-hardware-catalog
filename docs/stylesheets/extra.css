@@ -3,7 +3,56 @@
    Fonts: Syne (display) + IBM Plex Mono (specs)
    ================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap');
+/* Self-hosted fonts (no external CDN: privacy + performance) */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ibmplexmono-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ibmplexmono-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/ibmplexmono-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Syne';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/syne-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Syne';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/syne-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Syne';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/syne-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Syne';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('fonts/syne-800.woff2') format('woff2');
+}
 
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -865,5 +914,22 @@ body,
   .hw-report-quick-stats {
     flex-direction: column;
     gap: 6px;
+  }
+}
+
+/* ── Respect reduced-motion preference ──────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hw-card:hover,
+  .hw-cta-btn:hover {
+    transform: none !important;
   }
 }

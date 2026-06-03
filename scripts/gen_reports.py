@@ -37,6 +37,21 @@ def _cell(value):
     return text or "—"
 
 
+def _mod_val(value, numeric=False):
+    """Clean a memory-module field, tolerating label leakage from older reports
+    (e.g. "Size: 32", "Memory Speed:") without touching the stored JSON."""
+    v = re.sub(
+        r"^(?:Volatile |Cache |Logical )?"
+        r"(?:Configured Memory Speed|Memory Speed|Manufacturer|Size|Speed):\s*",
+        "",
+        str(value or "").strip(),
+        flags=re.IGNORECASE,
+    )
+    if numeric and not re.search(r"\d", v):
+        return ""
+    return v
+
+
 def _parse_timestamp(value):
     ts = str(value or "").strip()
     if not ts:
@@ -234,10 +249,10 @@ def render_report_page(data):
             if not isinstance(mod, dict):
                 continue
             out.append(
-                f"| {_cell(mod.get('size', ''))} "
-                f"| {_cell(mod.get('speed', ''))} "
-                f"| {_cell(mod.get('configured_speed', ''))} "
-                f"| {_cell(mod.get('manufacturer', ''))} |"
+                f"| {_cell(_mod_val(mod.get('size', '')))} "
+                f"| {_cell(_mod_val(mod.get('speed', ''), numeric=True))} "
+                f"| {_cell(_mod_val(mod.get('configured_speed', ''), numeric=True))} "
+                f"| {_cell(_mod_val(mod.get('manufacturer', '')))} |"
             )
         out.append("")
 
