@@ -1,0 +1,25 @@
+{
+  "graphics": [
+    {
+      "device": "Advanced Micro Devices, Inc. [AMD/ATI] Phoenix1 (rev d2)",
+      "driver": "amdgpu"
+    }
+  ],
+  "memory": {
+    "modules": [],
+    "total_gb": "14"
+  },
+  "processor": {
+    "cores": "16",
+    "model": "AMD Ryzen 7 PRO 8700GE w/ Radeon 780M Graphics"
+  },
+  "report_id": "18437bf70dd8",
+  "storage_controllers": [],
+  "system": {
+    "kernel": "6.12.0-211.7.3.el10_2.x86_64_v2",
+    "os_release": "AlmaLinux 10.2 (Lavender Lion)",
+    "platform": "x86_64"
+  },
+  "timestamp": "2026-06-03T16:07:35Z",
+  "user_notes": ""
+}
