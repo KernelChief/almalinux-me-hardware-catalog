@@ -59,7 +59,7 @@ hide:
 
 <div class="hw-section-hdr">
   <span class="hw-section-hdr-title">Recent Reports</span>
-  <a href="results/index.md" class="hw-section-hdr-link">See all →</a>
+  <a href="results/" class="hw-section-hdr-link">See all →</a>
 </div>
 
 <!-- REPORTS_TABLE_START -->
