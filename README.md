@@ -1,3 +1,8 @@
+> [!WARNING]
+> **This repository is discontinued and archived.** 
+> This project has been officially merged and adopted by the AlmaLinux Certification SIG. Please visit the official [AlmaLinux Hardware Catalog](https://catalog.almalinux.org/) instead.
+
+
 # AlmaLinux M&E Hardware Survey
 
 A fast, friendly way to share **hardware compatibility reports** for AlmaLinux M&E workflows. Your report helps the community identify which workstations and parts are reliable for VFX, Animation, and Video Production.
